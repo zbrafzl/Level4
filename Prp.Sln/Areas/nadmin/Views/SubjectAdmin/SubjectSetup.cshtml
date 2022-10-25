@@ -1,0 +1,117 @@
+﻿
+@{
+    ViewBag.Title = "Subject Setup";
+    Layout = "~/Areas/nadmin/Views/Shared/_Layout.cshtml";
+}
+
+@model Prp.Sln.SpecialityModelAdmin
+@section RenderCss{
+
+}
+@section RenderScript{
+
+    <script>
+
+        var instituteId = 0, provinceId = 0, districtId = 0;
+
+
+
+           // });
+        DDLLoadSpeciality();
+        function DDLLoadSpeciality() {
+
+
+            var obj = {};
+            obj.typeId = 0;
+            obj.condition = "GetAll";
+
+            var listResp = CallActionPost("/Common/SpecialityGetForDDL", obj);
+
+            var ddlItem = {};
+
+            if (listResp != null && listResp.length > 0) {
+
+                for (var i = 0; i < listResp.length; i++) {
+                    ddlItem = listResp[i];
+                    $("#ddlSpeciality").append("<option  value='" + ddlItem.id + "'>" + ddlItem.value + "</option>");
+                }
+            }
+        }
+
+        function ValidateForm(event) {
+
+
+            debugger;
+            var isOk = true;
+            try {
+
+
+
+
+            } catch (e) {
+                isOk = false;
+            }
+
+            if (isOk == false)
+                event.preventDefault();
+
+
+        }
+
+    </script>
+}
+<div class="row">
+    <div class="col-md-12 col-sm-12 ">
+        <div class="x_panel">
+            <div class="x_title">
+                <h2>Subject Setup </h2>
+                <div class="panel_toolbox">
+                    <a href="/admin/speciality-manage" class="btn btn-info"> Manage</a>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <br />
+                @using (Html.BeginForm("SaveSubSpecialitytData", "SubjectAdmin", FormMethod.Post, new { enctype = "multipart/form-data", onsubmit = " ValidateForm(event)" }))
+                {
+            <form id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+
+                @Html.HiddenFor(m => m.superSpeciality.specialityId, new { @specialityId = "hfdId" })
+                @Html.HiddenFor(m => m.superSpeciality.superSpecialityId, new { @superSpecialityId = "hfdId" })
+
+                <div class="form-group col-lg-12">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <label for="heard">Speciality *:</label>
+                        @Html.DropDownListFor(a => a.superSpeciality.specialityId, new SelectList(Model.listSpeciality, "id", "value"), "Select One", new { @class = "form-control", @id = "ddlSpeciality", @tabindex = "1", @required = "required" })
+                    </div>
+                </div>
+                    <div class="form-group col-lg-12">
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                            <label for="heard">Super Speciality Name *:</label>
+                            @Html.TextBoxFor(a => a.superSpeciality.name, new { @class = "form-control", @required = "required", @id = "txtName", @tabindex = "2" })
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-12">
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                            <label for="heard">Sort Order :</label>
+                            @Html.TextBoxFor(a => a.superSpeciality.sortOrder, new { @class = "form-control", @required = "required", @id = "sortOrder", @tabindex = "5" })
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-xs-6">
+                            <label for="heard">Status :</label>
+                            @Html.CheckBoxFor(a => a.superSpeciality.isActive, new { @class = "form-control", @id = "chkActive", @tabindex = "6" })
+                        </div>
+                    </div>
+
+                    <div class="clearfix"></div>
+                    <div class="ln_solid"></div>
+                    <div class="item form-group">
+                        <div class="col-md-6 col-sm-6 offset-md-3">
+                            <button type="submit" class="btn btn-success">Submit</button>
+                        </div>
+                    </div>
+            </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,2056 @@
+﻿@{ ViewBag.Title = "Applicant Education";
+                Layout = "~/Views/Shared/_Layout.cshtml"; }
+@model Prp.Sln.ProfileModel
+@section RenderCss{
+
+    <style>
+
+        .sprq {
+            color: #ff0000;
+        }
+    </style>
+
+}
+@section RenderScript{
+
+    
+
+    <script>
+
+        var applicantId = 0, applicantDetailId = 0, objApplicant = {}, objAppInfo = {}, objEducation = {},
+            imagesPath = "", provinceId = 0, instituteTypeId = 0, graduateTypeId = 0, graduateType = 0
+            , degreeTypeId, noOfYears = 0
+            , applicantDegreeDetailId = 0, specialityIdFCPS = 0, specialityIdMSMD = 0
+
+        var objDegree = {}, objEducation = {}, objDegreeMarksList = [], objCertificateList = [];
+
+        $(document).ready(function () {
+
+
+            sessionStorage.setItem("applicantProfileStep", 12);
+            applicantId = ConvertToInt($("#hfdApplicantId").val());
+            imagesPath = "/Images/Applicant/" + applicantId + "/";
+
+            $(".grd-foreign").hide();
+
+            var dateFormatDatePocker = 'dd/mm/yyyy';
+            var currentDate = new Date();
+            var dobMinDate = currentDate;
+            dobMinDate.setDate(dobMinDate.getDate() - 7300);
+
+            $(".txtPassingDateType").datepicker({
+                format: dateFormatDatePocker,
+                autoclose: true,
+                clearBtn: true,
+                disableTouchKeyboard: true,
+                todayHighlight: true,
+                showOnFocus: true,
+                changeYear: true,
+                endDate: new Date()
+            });
+            $(".txtPassingDatelevel3").datepicker({
+                format: dateFormatDatePocker,
+                autoclose: true,
+                clearBtn: true,
+                disableTouchKeyboard: true,
+                todayHighlight: true,
+                showOnFocus: true,
+                changeYear: true,
+                endDate: new Date()
+            });
+
+            $(document).on('change', '#ddlProvince', function () {
+
+                provinceId = ConvertToInt($(this).val());
+
+                DDLSetToDefault("ddlInstitute", 'Select One', 0);
+
+                BindInstituteDDL(0);
+
+            });
+
+            $(document).on('change', '#ddlDisciplineId1', function () {
+
+                diciplineId = ConvertToInt($(this).val());
+
+                DDLSetToDefault("ddlSpecialityId6", 'Select One', 0);
+
+                BindSpecialityDDL(0);
+
+            });
+            $(document).on('change', '#ddlDisciplineId0', function () {
+
+                diciplineId = ConvertToInt($(this).val());
+
+                DDLSetToDefault("ddlSpecialityId6", 'Select One', 0);
+
+                BindSpecialityDDL(0);
+
+            });
+
+            $(document).on('change', '#ddlInstituteType', function () {
+
+                instituteTypeId = $(this).val();
+
+                BindInstituteDDL(0);
+
+            });
+
+            //$(document).on('change', '#ddlInstitute', function () {
+
+            //    var instituteId = ConvertToInt($(this).val());
+
+            //    $("#divTxtInstituteName").hide();
+            //    if (instituteId == -1) {
+            //        $("#divTxtInstituteName").show();
+            //    }
+            //    else if (instituteId > 0) {
+            //        $("#divTxtInstituteName").hide();
+            //    }
+            //});
+
+            $(document).on('click', '#chkForeignNational', function () {
+                var status = $("#chkForeignNational").is(':checked');
+
+                $(".grd-national").show();
+                if (status == true) {
+                    $(".grd-national").hide();
+                }
+            });
+
+            $("#ddlProgramId6").attr("disabled", "disabled");
+
+            $(document).on('click', '.chkType', function () {
+                debugger;
+                $('.chkType').not(this).prop('checked', false);
+                $(".fieldType").hide();
+
+                var programVal = $(this).val();
+                var status = $(this).is(':checked');
+
+                var typeId = ConvertToInt($(this).attr("id").replace("chkType", ""));
+
+                $("#ddlProgramId6").val(programVal);
+
+                $("#ddlProgramId6").attr("disabled", "disabled");
+                if (status == true) {
+                    $(".fieldType" + typeId).show();
+                    $("#fieldType" + typeId).show();
+                    $(".fieldType6").show();
+                    $("#fieldType6").show();
+                }
+                else if (status == false) {
+                    $(".fieldType" + typeId).hide();
+                    $("#fieldType" + typeId).hide();
+                    $("#fieldType6").hide();
+                    $(".fieldType6").hide();
+                }
+
+            });
+
+            $(document).on('click', '#chkFcpsExemption', function () {
+
+                var status = $(this).is(':checked');
+                $('#divFcpsExemptionCertificate').hide();
+
+                if (status == true) {
+                    $('#divFcpsExemptionCertificate').show();
+                }
+
+            });
+
+            //
+
+            $(document).on('change', '#ddlDisciplineId1', function () {
+
+                var attrId = $(this).attr("id");
+
+                var controlId = ConvertToInt(attrId.replace("ddlDisciplineId", ""));
+                if (controlId == 1) {
+
+                    var displineId = ConvertToInt($("#ddlDisciplineId1").val());
+                    $("#fieldType0").hide();
+                    if (displineId > 0) {
+                        $("#chkType0").prop("checked", false);
+                        $("#fieldType0").show();
+                    }
+                }
+            });
+
+            $(document).on('click', '#btnSaveEducation', function () {
+                SaveAndProceed();
+            });
+
+            $(document).keypress(function (event) {
+                var keycode = (event.keyCode ? event.keyCode : event.which);
+                if (keycode == '13') {
+                    SaveAndProceed();
+                }
+            });
+
+            GetApplicantInfo();
+            GetApplicantEducationInfo();
+            BindSpecialityDDL(0);
+            GetApplicantLevel3Details();
+            document.getElementById("instituteNameDiv").style.display = "none";
+        });
+
+        function SaveAndProceed() {
+
+            var isError = ValidateFormEducation();
+            alert(isError);
+            if (isError == false) {
+
+                var resp = CallActionPost("/ApplicationAdmin/ApplicantEducationAddUpdate", objEducation);
+                if (resp != null && resp.status == true) {
+                    window.location = "/ad/applicant-education";
+                }
+
+            }
+
+        }
+
+        function ValidateFormEducation() {
+            let instituteId = 0;
+            let instituteName = '';
+            if ($("#ddlInstitute").val() == "other") {
+                instituteName = $("#txtInstituteName").val();
+                var resp = CallActionPost("/ApplicantProfile/AddToInstitute?instituteName=" + instituteName);
+                instituteId = resp.id;
+            }
+            else {
+                instituteId = ConvertToInt($("#ddlInstitute").val());
+            }
+
+            debugger;
+            var isError = false, ctrl = "";
+            objDegree = {}; objDegreeMarksList = [];
+
+            $(".req-fld").removeClass("req-fld");
+            $(".lbl-err").hide();
+
+            objDegree.applicantDegreeDetailId = applicantDegreeDetailId;
+            objDegree.applicantId = applicantId;
+
+
+            objDegree.degreeTypeId = degreeTypeId;
+            objDegree.degreeYear = noOfYears
+            objDegree.instituteTypeId = ConvertToInt($("#ddlInstituteType").val());
+            objDegree.instituteId = instituteId;
+
+            objDegree.provinceId = ConvertToInt($("#ddlProvince").val());
+
+            objDegree.instituteName = "";
+
+            if (objAppInfo.countryIdDegreePassing == 132) {
+
+                objDegree.graduateTypeId = 1;
+            }
+            else {
+                objDegree.graduateTypeId = 2;
+                objDegree.instituteId = 0;
+                objDegree.instituteName = ConvertToString($("#txtInstitueName").val());
+            }
+
+            if ($("#flDegree").val()) {
+                objDegree.imageDegree = UploadImage("flDegree", applicantId, "Degree");
+                $("#hfdDegree").val(objDegree.imageDegree);
+            }
+            objDegree.imageDegree = ConvertToString($("#hfdDegree").val());
+
+            if ($("#flCertificate").val()) {
+                objDegree.imageCertificate = UploadImage("flCertificate", applicantId, "Certificate");
+                $("#hfdCertificate").val(objDegree.imageCertificate);
+            }
+            objDegree.imageCertificate = ConvertToString($("#hfdCertificate").val());
+
+
+            if ($("#flMatric").val()) {
+                objDegree.imageDegreeMatric = UploadImage("flMatric", applicantId, "Matric");
+                $("#hfdMatric").val(objDegree.imageDegreeMatric);
+            }
+            objDegree.imageDegreeMatric = ConvertToString($("#hfdMatric").val());
+
+            if ($("#flFSC").val()) {
+                objDegree.imageDegreeFSC = UploadImage("flFSC", applicantId, "FSC");
+                $("#hfdFSC").val(objDegree.imageDegreeFSC);
+            }
+            objDegree.imageDegreeFSC = ConvertToString($("#hfdFSC").val());
+
+            objDegreeMarksList = [];
+            if (objDegree.graduateTypeId == 1) {
+
+
+                for (var i = 1; i <= noOfYears; i++) {
+
+                    var objDegreeMarks = {};
+                    objDegreeMarks.degreeMarksId = ConvertToInt($("#hfdRowDegree" + i + "Id").val());
+                    objDegreeMarks.applicantId = applicantId;
+                    objDegreeMarks.year = i;
+                    objDegreeMarks.obtainMarks = ConvertToInt($("#txtRowDegree" + i + "MarksObtain").val());
+                    objDegreeMarks.totalMarks = ConvertToInt($("#txtRowDegree" + i + "MarksTotal").val());
+                    objDegreeMarks.attempt = ConvertToInt($("#ddlRowDegree" + i + "Attempt").val());
+                    objDegreeMarks.division = ConvertToInt($("#ddlRowDegree" + i + "Division").val());
+                    objDegreeMarks.position = ConvertToInt($("#ddlRowDegree" + i + "Position").val());
+                    objDegreeMarks.graduateTypeId = 1;
+
+                    if ($("#flRowDegree" + i).val()) {
+                        objDegreeMarks.imageDMC = UploadImage("flRowDegree" + i, applicantId, "DMCDegree" + i);
+                        $("#hfdRowDegree" + i).val(objDegreeMarks.imageDMC);
+                    }
+                    objDegreeMarks.imageDMC = ConvertToString($("#hfdRowDegree" + i).val());
+
+                    if ($("#flRowPositionCertificate" + i).val()) {
+                        objDegreeMarks.positionCertificate = UploadImage("flRowPositionCertificate" + i, applicantId, "PositionCertificate" + i);
+                        $("#hfdRowPositionCertificate" + i).val(objDegreeMarks.positionCertificate);
+                    }
+                    objDegreeMarks.positionCertificate = ConvertToString($("#hfdRowPositionCertificate" + i).val());
+
+
+                    objDegreeMarksList.push(objDegreeMarks);
+                }
+
+                objDegree.totalMarks = 0;
+                objDegree.obtainMarks = 0;
+                objDegree.imageDegreeForeignFront = "";
+                objDegree.imageDegreeForeignBack = "";
+            }
+            else if (objDegree.graduateTypeId == 2) {
+
+
+                //Only for pakistani Students
+                if (objAppInfo.countryId == 132 && objAppInfo.countryIdDegreePassing != 132) {
+
+                    for (var i = 1; i <= 1; i++) {
+
+                        var objDegreeMarks = {};
+                        objDegreeMarks.degreeMarksId = ConvertToInt($("#hfdRowPMDC" + i + "Id").val());
+                        objDegreeMarks.applicantId = applicantId;
+                        objDegreeMarks.year = i;
+                        objDegreeMarks.obtainMarks = 0;
+                        objDegreeMarks.totalMarks = 0;
+                        objDegreeMarks.graduateTypeId = 2;
+                        objDegreeMarks.attempt = ConvertToInt($("#ddlRowPMDC" + i + "Attempt").val());
+
+                        if ($("#flRowPMDC" + i).val()) {
+                            objDegreeMarks.imageDMC = UploadImage("flRowPMDC" + i, applicantId, "DMCPMDC" + i);
+                            $("#hfdRowPMDC" + i).val(objDegreeMarks.imageDMC);
+                        }
+                        objDegreeMarks.imageDMC = ConvertToString($("#hfdRowPMDC" + i).val());
+
+                        objDegreeMarksList.push(objDegreeMarks);
+                    }
+                }
+
+                objDegree.totalMarks = ConvertToInt($("#txtTotalMarksForeign").val());
+                objDegree.obtainMarks = ConvertToInt($("#txtObtainMarksForeign").val());
+
+
+                if ($("#flDMCForeignFront").val()) {
+                    objDegree.imageDegreeForeignFront = UploadImage("flDMCForeignFront", applicantId, "DegreeDMCForeignFront");
+                    $("#hfdDMCForeignFront").val(objDegree.imageDegreeForeignFront);
+                }
+                objDegree.imageDegreeForeignFront = ConvertToString($("#hfdDMCForeignFront").val());
+
+                if ($("#flDMCForeignBack").val()) {
+                    objDegree.imageDegreeForeignBack = UploadImage("flDMCForeignBack", applicantId, "DegreeDMCForeignBack");
+                    $("#hfdDMCForeignBack").val(objDegree.imageDegreeForeignBack);
+                }
+                objDegree.imageDegreeForeignBack = ConvertToString($("#hfdDMCForeignBack").val());
+            }
+
+
+
+
+
+            objDegree.fcpsExemptionStatus = $("#chkFcpsExemption").is(':checked');
+            objDegree.fcpsExemptionCertificate = "";
+
+
+            /*
+            ***********************************************************************/
+            var typeIdStart = 0, typeIdEnd = 0;
+            if (objDegree.degreeTypeId == 1) {
+                typeIdStart = 1;
+                typeIdEnd = 3;
+            } else {
+                typeIdStart = 4;
+                typeIdEnd = 6;
+            }
+
+            var typeIds = "";
+            var typeIdList = [];
+            objCertificateList = [];
+            objLevel3List = [];
+
+
+            for (var i = typeIdStart; i <= typeIdEnd; i++) {
+
+                var objCertificate = {};
+
+                var typeStatus = $("#chkType" + i).is(':checked');
+
+                if (typeStatus == true) {
+
+                    typeIds = typeIds + "," + i;
+
+                    var objType = {};
+                    objType.typeId = i;
+                    typeIdList.push(objType);
+
+                    objCertificate.applicantCertificateTypeId = ConvertToInt($("#hfdTypeId" + i).val());
+                    objCertificate.applicantId = applicantId;
+                    objCertificate.typeId = i;
+                    objCertificate.disciplineId = 0;
+
+                    if (i == 5) {
+                        objCertificate.obtainMarks = 75;
+                        objCertificate.totalMarks = 100;
+                    }
+                    else if (i == 1) {
+                        objCertificate.disciplineId = ConvertToInt($("#ddlDisciplineId" + i).val());
+                        objCertificate.obtainMarks = 75;
+                        objCertificate.totalMarks = 100;
+                    }
+                    else {
+
+                        objCertificate.obtainMarks = ConvertToInt($("#txtObtainMarksType" + i).val());
+                        objCertificate.totalMarks = ConvertToInt($("#txtTotalMarksType" + i).val());
+                    }
+
+                    objCertificate.datePassing = "";
+                    if (ValidateDate("txtPassingDateType" + i)) {
+                        objCertificate.datePassing = ConvertToString($("#txtPassingDateType" + i).val());
+                    }
+
+
+
+                    if ($("#flType" + i).val()) {
+                        objCertificate.imageCertificate = UploadImage("flType" + i, applicantId, "type" + i);
+                        $("#hfdType" + i).val(objCertificate.imageCertificate);
+                    }
+                    objCertificate.imageCertificate = ConvertToString($("#hfdType" + i).val());
+
+
+
+                    objCertificateList.push(objCertificate);
+                }
+            }
+
+            debugger;
+            // For Level 3 details information getting 
+            var objCertificatelevel3 = {};
+            objCertificatelevel3.applicantlevel3Details = ConvertToInt($("#hfdTypeId6").val());
+            objCertificatelevel3.applicantId = applicantId;
+            objCertificatelevel3.typeId = ConvertToInt($("#ddlProgramId6").val());
+            objCertificatelevel3.disciplineId = ConvertToInt($("#ddlDisciplineId6").val());
+            objCertificatelevel3.specialityId = ConvertToInt($("#ddlSpecialityId6").val());
+            objCertificatelevel3.obtainMarks = ConvertToInt($("#txtObtainMarkslevel3").val());
+            objCertificatelevel3.totalMarks = ConvertToInt($("#txtTotalMarkslevel3").val());
+            objCertificatelevel3.medals = ConvertToInt($("#ddlGoldMedal6").val());
+            if (ValidateDate("txtPassingDatelevel3")) {
+                objCertificatelevel3.passingDate = ConvertToString($("#txtPassingDatelevel3").val());
+            }
+            if ($("#flType6").val()) {
+                objCertificatelevel3.imageCertificate = UploadImage("flType6", applicantId, "type6");
+                $("#hfdType6").val(objCertificatelevel3.imageCertificate);
+            }
+            objCertificatelevel3.imageCertificate = ConvertToString($("#hfdType6").val());
+
+            objLevel3List.push(objCertificatelevel3);
+
+
+            objDegree.typeIds = typeIds;
+
+            /* Check Validation
+            ***********************************************************************/
+
+            if (objDegree.graduateTypeId == 1) {
+
+                if (objDegree.instituteTypeId == 0) {
+                    $("#ddlInstituteType").addClass("req-fld");
+                    alert('471');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "ddlInstituteType";
+                }
+
+
+                if (objDegree.instituteId == 0) {
+                    $("#ddlInstitute").addClass("req-fld");
+                    $("#ddlInstitute_chosen").addClass("req-fld");
+                    alert('482');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "ddlInstitute";
+                }
+                var ctrlLoop = "";
+                if (objDegreeMarksList.length > 0) {
+
+                    for (var i = 1; i <= noOfYears; i++) {
+
+                        var objDegreeMarks = objDegreeMarksList[i - 1];
+
+                        if (objDegreeMarks.obtainMarks == 0) {
+                            ctrlLoop = "txtRowDegree" + i + "MarksObtain";
+                            $("#" + ctrlLoop).addClass("req-fld");
+                            alert('497');
+                            isError = true;
+                            if (ctrl == "")
+                                ctrl = ctrlLoop;
+                        }
+
+                        if (objDegreeMarks.totalMarks == 0) {
+                            ctrlLoop = "txtRowDegree" + i + "MarksTotal";
+                            $("#" + ctrlLoop).addClass("req-fld");
+                            alert('506');
+                            isError = true;
+                            if (ctrl == "")
+                                ctrl = ctrlLoop;
+                        }
+
+                        if (objDegreeMarks.obtainMarks > objDegreeMarks.totalMarks) {
+                            alert('513');
+                            isError = true;
+
+                            $("#" + "txtRowDegree" + i + "MarksTotal").addClass("req-fld");
+                            $("#" + "txtRowDegree" + i + "MarksObtain").addClass("req-fld");
+
+
+                            alert("Obtained marks greater then total marks in year " + i + ". Please enter valid marks");
+
+                        }
+
+                        if (objDegreeMarks.attempt == 0) {
+                            ctrlLoop = "ddlRowDegree" + i + "Attempt";
+                            $("#" + ctrlLoop).addClass("req-fld");
+                            alert('527');
+                            isError = true;
+                            if (ctrl == "")
+                                ctrl = ctrlLoop;
+                        }
+
+                        if (objDegreeMarks.imageDMC == 0) {
+                            ctrlLoop = "flRowDegree" + i;
+                            $("#" + ctrlLoop).addClass("req-fld");
+                            alert('536');
+                            isError = true;
+                            if (ctrl == "")
+                                ctrl = ctrlLoop;
+                        }
+                    }
+                }
+            }
+            else if (objDegree.graduateTypeId == 2) {
+
+                //Only for pakistani Students
+                if (objAppInfo.countryId == 132 && objAppInfo.countryIdDegreePassing != 132) {
+
+                    if (objDegreeMarksList.length > 0) {
+                        var ctrlLoop = "";
+                        for (var i = 1; i <= 1; i++) {
+
+                            var objDegreeMarks = objDegreeMarksList[i - 1];
+
+                            if (objDegreeMarks.attempt == 0) {
+                                ctrlLoop = "ddlRowPMDC" + i + "Attempt";
+                                $("#" + ctrlLoop).addClass("req-fld");
+                                alert('558');
+                                isError = true;
+                                if (ctrl == "")
+                                    ctrl = ctrlLoop;
+                            }
+
+                            if (objDegreeMarks.imageDMC == 0) {
+                                ctrlLoop = "flRowPMDC" + i;
+                                $("#" + ctrlLoop).addClass("req-fld");
+                                alert('567');
+                                isError = true;
+                                if (ctrl == "")
+                                    ctrl = ctrlLoop;
+                            }
+                        }
+                    }
+                }
+
+                if (objDegree.totalMarks == 0) {
+                    $("#txtTotalMarksForeign").addClass("req-fld");
+                    alert('478');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "txtTotalMarksForeign";
+                }
+
+                if (objDegree.obtainMarks == 0) {
+                    $("#txtObtainMarksForeign").addClass("req-fld");
+                    alert('586');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "txtObtainMarksForeign";
+                }
+
+                if (objDegree.obtainMarks > objDegree.totalMarks) {
+                    alert('593');
+                    isError = true;
+                    alert("Obtain marks greater then total marks in degree. Please enter valid marks");
+
+                    $("#txtObtainMarksForeign").addClass("req-fld");
+                    $("#txtObtainMarksForeign").addClass("req-fld");
+                }
+
+                if (objDegree.imageDegreeForeignFront == "") {
+                    $("#flDMCForeignFront").addClass("req-fld");
+                    alert('603');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "flDMCForeignFront";
+                }
+
+                if (objDegree.imageDegreeForeignBack == "") {
+                    $("#flDMCForeignBack").addClass("req-fld");
+                    alert('611');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "flDMCForeignBack";
+                }
+
+                //if (objDegree.certificatePMDC == "") {
+                //    $("#flPMDCCertificate").addClass("req-fld");
+                //    isError = true;
+                //    if (ctrl == "")
+                //        ctrl = "flPMDCCertificate";
+                //}
+
+            }
+
+            if (objDegree.imageDegree == "") {
+                $("#flDegree").addClass("req-fld");
+                alert('628');
+                isError = true;
+                if (ctrl == "")
+                    ctrl = "flDegree";
+            }
+
+            if (objDegree.imageCertificate == "") {
+                $("#flCertificate").addClass("req-fld");
+                alert('636');
+                isError = true;
+                if (ctrl == "")
+                    ctrl = "flCertificate";
+            }
+
+            if (objDegree.imageDegreeMatric == "") {
+                $("#flMatric").addClass("req-fld");
+                alert('644');
+                isError = true;
+                if (ctrl == "")
+                    ctrl = "flMatric";
+            }
+
+            if (objDegree.imageDegreeFSC == "") {
+                $("#flFSC").addClass("req-fld");
+                alert('652');
+                isError = true;
+                if (ctrl == "")
+                    ctrl = "flFSC";
+            }
+
+            var objType = {};
+            for (var i = 0; i < typeIdList.length; i++) {
+
+                var typeId = ConvertToInt(typeIdList[i].typeId);
+
+                objType = $.grep(objCertificateList, function (n, i) {
+                    return n.typeId == typeId;
+                })[0];
+
+                if (typeId == 2 || typeId == 3 || typeId == 4) {
+
+                    if (objType.obtainMarks == 0) {
+
+                        $("#txtObtainMarksType" + typeId).addClass("req-fld");
+                        alert('672');
+                        isError = true;
+                        if (ctrl == "")
+                            ctrl = "#txtObtainMarksType" + typeId;
+                    }
+
+                    if (objType.totalMarks == "") {
+
+                        $("#txtTotalMarksType" + typeId).addClass("req-fld");
+                        alert('682');
+                        isError = true;
+                        if (ctrl == "")
+                            ctrl = "#txtTotalMarksType" + typeId;
+                    }
+
+                    if (objType.obtainMarks > objType.totalMarks) {
+                        alert('686');
+                        isError = true;
+                        var typeName = "";
+                        if (typeId == 1)
+                            typeName = "FCPS";
+                        else if (typeId == 2)
+                            typeName = "MS";
+                        else if (typeId == 3)
+                            typeName = "MD";
+                        else if (typeId == 4)
+                            typeName = "MSD";
+                        else if (typeId == 5)
+                            typeName = "FCPS-D";
+
+                        alert("Obtain marks greater then total marks in " + typeName + ". Please enter valid marks");
+
+                        $("#txtTotalMarksType" + typeId).addClass("req-fld");
+                        $("#txtObtainMarksType" + typeId).addClass("req-fld");
+
+                    }
+
+                }
+
+                else if (typeId == 1) {
+
+                    if (objType.disciplineId == 0) {
+                        $("#ddlDisciplineId" + i).addClass("req-fld");
+                        alert('715');
+                        isError = true;
+                        if (ctrl == "")
+                            ctrl = "#ddlDisciplineId" + i;
+                    }
+                }
+
+                if (objType.datePassing == "") {
+                    $("#txtPassingDateType" + typeId).addClass("req-fld");
+                    alert('724');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "#txtPassingDateType" + typeId;
+                }
+
+                if (objType.imageCertificate == "") {
+                    $("#flType" + typeId).addClass("req-fld");
+                    alert('732');
+                    isError = true;
+                    if (ctrl == "")
+                        ctrl = "flType" + typeId;
+                }
+
+            }
+
+            try {
+
+                objType = $.grep(objCertificateList, function (n, i) {
+                    return n.typeId == 1;
+                })[1];
+
+                if (objType != null && objType.typeId > 0) {
+
+
+                    if (objType.disciplineId == 0) {
+                        $("#ddlDisciplineId0").addClass("req-fld");
+                        alert('751');
+                        isError = true;
+                        if (ctrl == "")
+                            ctrl = "#ddlDisciplineId0";
+                    }
+
+                    if (objType.datePassing == "") {
+                        $("#txtPassingDateType0").addClass("req-fld");
+                        alert('758');
+                        isError = true;
+                        if (ctrl == "")
+                            ctrl = "#txtPassingDateType0";
+                    }
+
+                    if (objType.imageCertificate == "") {
+                        $("#flType0").addClass("req-fld");
+                        alert('766');
+                        isError = true;
+                        if (ctrl == "")
+                            ctrl = "flType0";
+                    }
+                }
+
+            } catch (e) {
+
+            }
+
+            //if (objDegree.fcpsExemptionStatus == true && objDegree.fcpsExemptionCertificate == "") {
+
+            //    $("#flFcpsExemption").addClass("req-fld");
+            //    isError = true;
+            //    if (ctrl == "")
+            //        ctrl = "flFcpsExemption";
+            //}
+
+            if (ctrl != "")
+                $("#" + ctrl).focus();
+
+
+            objEducation = {};
+            objEducation.applicantDegree = objDegree;
+            objEducation.listDegreeMarks = objDegreeMarksList;
+            objEducation.listCertificate = objCertificateList;
+            objEducation.listLevel3 = objLevel3List;
+
+            if (objCertificateList == null || objCertificateList.length == 0) {
+                alert('797');
+                isError = true;
+
+                alert("Please select minimum one certification (FCPS,MS/MD, MSD)");
+            }
+
+
+            return isError;
+        }
+
+        function GetApplicantInfo() {
+
+            var resp = CallActionGet("/ApplicantProfile/GetApplicantInfo?applicantId=" + applicantId);
+
+            if (resp != null && resp.applicantId > 0) {
+                objApplicant = resp;
+            }
+        }
+
+        function GetApplicantEducationInfo() {
+
+
+            $("#ddlDegree").attr("disabled", "disabled");
+
+            objAppInfo = CallActionGet("/ApplicantProfile/GetApplicantInfoDetail?applicantId=" + applicantId);
+
+            var respEdu = CallActionGet("/ApplicantProfile/GetApplicantEducationData?applicantId=" + applicantId);
+            console.log(respEdu);
+            if (respEdu != null) {
+
+                if (respEdu.applicantDegree != null && respEdu.applicantDegree.applicantDegreeDetailId > 0) {
+
+                    objDegree = respEdu.applicantDegree;
+                    objDegreeMarksList = respEdu.listDegreeMarks;
+                    objCertificateList = respEdu.listCertificate;
+                    BindPenelEducation();
+                }
+                else {
+                    BindPenelEducationNew();
+                }
+            }
+            else {
+                BindPenelEducationNew();
+            }
+        }
+
+        function GetApplicantLevel3Details() {
+            var respLevel3 = CallActionGet("/ApplicantProfile/GetApplicantLevel3Details?applicantId=" + applicantId);
+            debugger;
+            if (respLevel3 != null) {
+                objLevel3List = respLevel3;
+                BindLevel3Details()
+            }
+
+        }
+
+        //First time screen open (New data)
+        function BindPenelEducationNew() {
+
+            // 132 = Pakistan Local Graduate
+            if (objAppInfo.countryIdDegreePassing == 132) {
+
+                graduateTypeId = 1;
+                instituteTypeId = 1;
+                provinceId = 196;
+
+                $("#ddlProvince").val(196);
+                $("#txtGraduation").val("Local");
+                $(".grd-foreign").hide();
+                $(".grd-local").show();
+
+                BindInstituteDDL(0);
+                $(".grd-national").hide();
+                $("#chkForeignNational").prop("checked", false);
+            }
+            else {
+
+                graduateTypeId = 2;
+                instituteTypeId = 0;
+                provinceId = 0;
+
+                $("#txtGraduation").val("Foreign ");
+
+                $(".grd-foreign").show();
+                $(".grd-local").hide();
+
+                if (objAppInfo.countryId == 132) {
+                    $(".grd-national").show();
+                    $("#chkForeignNational").prop("checked", true);
+                }
+                else {
+                    $(".grd-national").hide();
+                    $("#chkForeignNational").prop("checked", false);
+                }
+
+            }
+
+            $("#txtNationality").val(objAppInfo.countryName);
+            $("#txtGraduate").val(objAppInfo.countryDegreePassing);
+            $("#txtDegree").val(objApplicant.facultyName);
+
+            degreeTypeId = objApplicant.facultyId;
+
+            if (objApplicant.facultyId == 1) {
+                noOfYears = 5;
+                $("#rowDegree5").show();
+            }
+            else {
+                noOfYears = 4;
+                $("#rowDegree5").hide();
+            }
+
+            $("#txtDuration").val(noOfYears);
+        }
+
+
+        function BindLevel3Details() {
+            debugger;
+            if (objLevel3List != null && objLevel3List.length > 0) {
+                //$("#chkType0").prop("checked", true);
+                objLevel3List = objLevel3List[0];
+                $("#fieldType6").show();
+
+                if (objLevel3List.disciplineId > 0 && objLevel3List != null && objLevel3List.typeId > 0) {
+
+                    $("#chkType6").prop("checked", true);
+                    $("#fieldType6").show();
+
+                    $("#hfdTypeId6").val(objLevel3List.applicantLevel3Details);
+                    $("#fieldType6").show();
+
+                    $("#ddlSpecialityId6").val(objLevel3List.specialityId);
+                    $("#ddlProgramId6").val(objLevel3List.typeId);
+                    $("#ddlGoldMedal6").val(objLevel3List.medals);
+                    if (objLevel3List.passingDate != null) {
+                        $("#txtPassingDatelevel3").val(ToDateFormatDDMMYYYWithSlash(JsonToDate(objLevel3List.passingDate)));
+                    }
+                    $("#txtObtainMarkslevel3").val(objLevel3List.obtainMarks);
+                    $("#txtTotalMarkslevel3").val(objLevel3List.totalMarks);
+
+                    if (objLevel3List.imageCertificate != "") {
+                        $('#imgType6').attr('src', imagesPath + objLevel3List.imageCertificate);
+                        $('#imgType6').show();
+                        $('#rmvType6').show();
+                        $("#hfdType6").val(objLevel3List.imageCertificate);
+                    }
+
+                }
+            }
+
+        }
+
+        function BindPenelEducation() {
+            debugger;
+
+            $("#txtNationality").val(objAppInfo.countryName);
+            $("#txtGraduate").val(objAppInfo.countryDegreePassing);
+
+            applicantDegreeDetailId = objDegree.applicantDegreeDetailId;
+
+
+            instituteTypeId = objDegree.instituteTypeId;
+
+            if (objAppInfo.countryId == 132 && objDegree.provinceId == 0) {
+                objDegree.provinceId = 196;
+            }
+
+            provinceId = objDegree.provinceId;
+            degreeTypeId = objDegree.degreeTypeId;
+            noOfYears = objDegree.degreeYear;
+
+            $("#ddlProvince").val(provinceId);
+            $("#txtDegree").val(objDegree.degree);
+
+            if (degreeTypeId == 1) {
+                if (noOfYears > 4)
+                    $("#rowDegree5").show();
+                else
+                    $("#rowDegree5").hide();
+            }
+            else {
+                $("#rowDegree5").hide();
+            }
+
+            $("#txtDuration").val(noOfYears);
+
+            BindInstituteDDL(objDegree.instituteId);
+
+            $("#hfdDegree").val(objDegree.imageDegree);
+            if (objDegree.imageDegree != "") {
+                $('#imgDegree').attr('src', imagesPath + objDegree.imageDegree);
+                $('#imgDegree').show();
+                $('#rmvDegree').show();
+            }
+
+            $("#hfdCertificate").val(objDegree.imageCertificate);
+            if (objDegree.imageCertificate != "") {
+                $('#imgCertificate').attr('src', imagesPath + objDegree.imageCertificate);
+                $('#imgCertificate').show();
+                $('#rmvCertificate').show();
+            }
+
+            $("#hfdMatric").val(objDegree.imageDegreeMatric);
+            if (objDegree.imageDegreeMatric != "") {
+                $('#imgMatric').attr('src', imagesPath + objDegree.imageDegreeMatric);
+                $('#imgMatric').show();
+                $('#rmvMatric').show();
+            }
+
+            $("#hfdFSC").val(objDegree.imageDegreeFSC);
+            if (objDegree.imageDegreeFSC != "") {
+                $('#imgFSC').attr('src', imagesPath + objDegree.imageDegreeFSC);
+                $('#imgFSC').show();
+                $('#rmvFSC').show();
+            }
+
+            if (objDegree.graduateTypeId == 1) {
+
+                $("#txtGraduation").val("Local");
+                $(".grd-local").show();
+                $(".grd-foreign").hide();
+
+                $("#ddlInstituteType").val(objDegree.instituteTypeId);
+                $("#txtInstitueName").val("");
+                //$("#divTxtInstituteName").hide();
+
+
+                BindInstituteDDL(objDegree.instituteId);
+
+                //noOfYears
+                //for (var i = 1; i <= objDegreeMarksList.length; i++) {
+                if (objDegreeMarksList.length > 0) {
+
+                    for (var i = 1; i <= noOfYears; i++) {
+                        var objDegreeMarks = objDegreeMarksList[i - 1];
+
+                        $("#hfdRowDegree" + i + "Id").val(objDegreeMarks.degreeMarksId);
+                        $("#txtRowDegree" + i + "MarksObtain").val(objDegreeMarks.obtainMarks);
+                        $("#txtRowDegree" + i + "MarksTotal").val(objDegreeMarks.totalMarks);
+                        $("#ddlRowDegree" + i + "Attempt").val(objDegreeMarks.attempt);
+                        $("#ddlRowDegree" + i + "Division").val(objDegreeMarks.division);
+                        if (objDegreeMarks.position != null) {
+                            $("#ddlRowDegree" + i + "Position").val(objDegreeMarks.position);
+
+                        } else {
+                            $("#ddlRowDegree" + i + "Position").val(0);
+
+                        }
+                        $("#hfdRowDegree" + i).val(objDegreeMarks.imageDMC);
+
+                        if (objDegreeMarks.imageDMC != "") {
+                            $("#imgRowDegree" + i).attr('src', imagesPath + objDegreeMarks.imageDMC);
+                            $("#imgRowDegree" + i).show();
+
+                            $("#rmvRowDegree" + i).show();
+                        }
+                        if (objDegreeMarks.positionCertificate != "") {
+                            $("#imgRowPositionCertificate" + i).attr('src', imagesPath + objDegreeMarks.positionCertificate);
+                            $("#imgRowPositionCertificate" + i).show();
+
+                            $("#rmvRowPositionCertificate" + i).show();
+                        }
+
+                    }
+                }
+            }
+            else if (objDegree.graduateTypeId == 2) {
+
+
+                $("#txtGraduation").val("Foreign");
+                $(".grd-local").hide();
+                $(".grd-foreign").show();
+
+                $(".grd-national").hide();
+
+                $("#rbtnGraduateForeign").attr("checked", "checked");
+
+                if (objAppInfo.countryId == 132 && objAppInfo.countryIdDegreePassing != 132) {
+
+                    $(".grd-national").show();
+
+                    for (var i = 1; i <= objDegreeMarksList.length; i++) {
+
+                        var objDegreeMarks = objDegreeMarksList[i - 1];
+
+                        $("#hfdRowPMDC" + i + "Id").val(objDegreeMarks.degreeMarksId);
+
+                        $("#ddlRowPMDC" + i + "Attempt").val(objDegreeMarks.attempt);
+
+
+                        $("#hfdRowPMDC" + i).val(objDegreeMarks.imageDMC);
+                        if (objDegreeMarks.imageDMC != "") {
+                            $("#imgRowPMDC" + i).attr('src', imagesPath + objDegreeMarks.imageDMC);
+                            $("#imgRowPMDC" + i).show();
+
+                            $("#imgRowPMDC" + i).show();
+                        }
+
+                    }
+                }
+
+                $("#txtTotalMarksForeign").val(objDegree.totalMarks);
+                $("#txtObtainMarksForeign").val(objDegree.obtainMarks);
+                $("#hfdDMCForeignFront").val(objDegree.imageDegreeForeignFront);
+
+                if (objDegree.imageDegreeForeignFront != "") {
+
+                    $('#imgDMCForeignFront').attr('src', imagesPath + objDegree.imageDegreeForeignFront);
+                    $('#imgDMCForeignFront').show();
+
+                    $("#rmvDMCForeignFront").show();
+                }
+
+                $("#hfdDMCForeignBack").val(objDegree.imageDegreeForeignBack);
+                if (objDegree.imageDegreeForeignBack != "") {
+
+                    $('#imgDMCForeignBack').attr('src', imagesPath + objDegree.imageDegreeForeignBack);
+                    $('#imgDMCForeignBack').show();
+                    $("#rmvDMCForeignBack").show();
+                }
+            }
+
+            var typeIdStart = 0, typeIdEnd = 0;
+            if (objDegree.degreeTypeId == 1) {
+                typeIdStart = 1;
+                typeIdEnd = 3;
+            } else {
+                typeIdStart = 4;
+                typeIdEnd = 5;
+            }
+
+            $(".chkType").prop("checked", false);
+
+            $(".txtObtainMarksType").val("");
+            $(".txtTotalMarksType").val("");
+            $(".txtPassingDateType").val("");
+            $(".hfdType").val("");
+            $(".imgType").hide();
+            $(".rmvType").hide();
+
+            $(".hfdTypeId").val(0);
+
+            var fcpsCount = 0;
+            var fcpsCertificateList = [];
+
+
+            if (objCertificateList != null && objCertificateList.length > 0) {
+
+                fcpsCertificateList = $.grep(objCertificateList, function (n, k) {
+                    return n.typeId == 1;
+                });
+
+
+                for (var i = typeIdStart; i <= typeIdEnd; i++) {
+
+                    var objCerttificate = {};
+
+                    if (i == 1) {
+
+                        objCerttificate = $.grep(fcpsCertificateList, function (n, k) {
+                            return n.typeId == i;
+                        })[0];
+                    }
+                    else {
+
+                        objCerttificate = $.grep(objCertificateList, function (n, k) {
+                            return n.typeId == i;
+                        })[0];
+                    }
+
+                    if (objCerttificate != null && objCerttificate.applicantCertificateTypeId > 0) {
+
+                        if (i == 1) {
+                            fcpsCount = fcpsCount + 1;
+                        }
+                        debugger;
+                        $("#hfdTypeId" + i).val(objCerttificate.applicantCertificateTypeId);
+                        $("#fieldType" + i).show();
+                        $(".fieldType" + i).show();
+                        $("#chkType" + i).prop("checked", true);
+
+                        if (objCerttificate.imageCertificate != "") {
+                            $('#imgType' + i).attr('src', imagesPath + objCerttificate.imageCertificate);
+                            $('#imgType' + i).show();
+                            $('#rmvType' + i).show();
+                            $("#hfdType" + i).val(objCerttificate.imageCertificate);
+                        }
+
+                        $("#txtPassingDateType" + i).val(ToDateFormatDDMMYYYWithSlash(JsonToDate(objCerttificate.passingDate)));
+
+                        if (objCerttificate.typeId == 2 || objCerttificate.typeId == 3 || objCerttificate.typeId == 4) {
+                            $("#txtObtainMarksType" + i).val(objCerttificate.obtainMarks);
+                            $("#txtTotalMarksType" + i).val(objCerttificate.totalMarks);
+                        }
+                        else if (objCerttificate.typeId == 1)
+                            $("#ddlDisciplineId" + i).val(objCerttificate.disciplineId);
+                    }
+                }
+
+                // already bind FCPS panel and check has more
+                if (fcpsCertificateList != null && fcpsCertificateList.length > 1) {
+
+                    //$("#chkType0").prop("checked", true);
+                    $("#fieldType0").show();
+
+                    objCerttificate = $.grep(fcpsCertificateList, function (n, k) {
+                        return n.typeId == 1;
+                    })[1];
+                }
+                else if (fcpsCertificateList != null && fcpsCertificateList.length > 0) {
+                    //$("#chkType0").prop("checked", true);
+                    $("#fieldType0").show();
+                }
+            }
+        }
+
+        function instituteCheckOption(that) {
+            if (that.value == "other") {
+                document.getElementById("instituteNameDiv").style.display = "block";
+            } else {
+                document.getElementById("instituteNameDiv").style.display = "none";
+            }
+        }
+
+        function BindInstituteDDL(instituteId) {
+
+            var obj = {};
+            obj.search = 'GetInstituteByTypeAndProvince';
+            obj.parentId = provinceId;
+            obj.typeId = instituteTypeId;
+
+            $("#ddlInstitute").empty();
+
+
+            if (provinceId > 0 && instituteTypeId > 0) {
+
+                var list = CallActionPost("/Common/DDLGetInstitute", obj);
+
+                if (list != null && list.length > 0) {
+
+                    var ddlItem = {};
+                    for (var i = 0; i < list.length; i++) {
+                        ddlItem = list[i];
+
+                        $("#ddlInstitute").append("<option  value='" + ddlItem.value + "'>" + ddlItem.key + "</option>");
+
+                    }
+                    if (instituteTypeId == 3) {
+                        $("#ddlInstitute").append("<option  value='other'>Other</option>");
+                    }
+                    $("#ddlInstitute").val(instituteId);
+                }
+            }
+
+            $("#ddlInstitute").trigger("chosen:updated");
+        }
+
+        function BindSpecialityDDL(diciplineId) {
+
+            debugger;
+            var obj = {};
+            obj.typeId = 1;
+            obj.disciplineId = ConvertToInt($("#ddlDisciplineId1").val());
+            obj.disciplineIdOptional = ConvertToInt($("#ddlDisciplineId0").val());
+            var list = CallActionPost("/Common/GetSpecialityForApplicant", obj);
+
+            if (list != null && list.length > 0) {
+                $("#ddlSpecialityId6").empty();
+                var ddlItem = {};
+                for (var i = 0; i < list.length; i++) {
+                    ddlItem = list[i];
+                    if (list[1] != null) {
+                        diciplineId = list[1].id;
+                    }
+
+                    $("#ddlSpecialityId6").append("<option  value='" + ddlItem.id + "'>" + ddlItem.key + "</option>");
+                }
+
+                $("#ddlSpecialityId6").val(diciplineId);
+            }
+
+
+            $("#ddlSpecialityId6").trigger("chosen:updated");
+        }
+
+    </script>
+
+}
+<div class="container">
+    <div class="row main">
+        @Html.Partial("_ApplicationUpdateLinks")
+        <div class="col-sm-12 form-box">
+            <div class="main-login main-center">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h3 class="text-center">Education : Step 2 of 6  <span class="lightgray"></span></h3>
+                        <form role="form">
+                            <fieldset>
+                                <legend>Degree: </legend>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label> Nationality </label>
+                                            <input id="txtNationality" name="txtNationality" class="form-control" disabled />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label> Graduate Country </label>
+                                            <input id="txtGraduate" name="txtGraduate" class="form-control" disabled />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label> Graduation </label>
+                                            <input id="txtGraduation" name="txtGraduation" class="form-control" disabled />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label> Degree </label>
+                                            <input id="txtDegree" name="txtDegree" class="form-control" disabled />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group">
+                                            <label> Duration </label>
+                                            <input id="txtDuration" name="txtDuration" class="form-control" disabled />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-3 col-md-3 grd-local">
+                                        <div class="form-group">
+                                            <label> Province <span class="sprq">*</span></label>
+                                            <select class="form-control" required="" name="ddlProvince" id="ddlProvince">
+                                                @foreach (var u in Model.listProvince)
+                                                {
+                                                    <option value="@u.regionId"> @u.name </option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-3 col-md-3 grd-local">
+                                        <div class="form-group">
+                                            <label>Institute Type <span class="sprq">*</span></label>
+                                            <select id="ddlInstituteType" name="ddlInstituteType" class="form-control  reqfd" tabindex="1">
+                                                @foreach (var u in Model.listInstituteType)
+                                                {
+                                                    <option value="@u.id"> @u.name </option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 grd-local">
+                                        <div class="form-group">
+                                            <label> Institute <span class="sprq">*</span></label>
+                                            <select id="ddlInstitute" name="ddlInstitute" class="form-control chosen-select" tabindex="1" onchange="instituteCheckOption(this)">
+                                                <option value="0" selected="selected"> Select One </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-12 col-md-12 grd-local" id="instituteNameDiv" style="display:none">
+                                        <div class="form-group">
+                                            <label> Enter Institute Name <span class="sprq">*</span></label>
+                                            <input type="text" maxlength="30" name="txtInstituteName" id="txtInstituteName" class="form-control " tabindex="7" autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-3 col-md-3 grd-foreign">
+                                        <div class="form-group">
+                                            <label> Institute Name <span class="sprq">*</span></label>
+                                            <input id="txtInstitueName" name="txtInstitueName" class="form-control alpha " len="250" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="grd-local">
+                                <legend>Yearly Marks:</legend>
+                                <div class="row">
+                                    <div class="col-md-12 " style="padding: 20px 10px; display: none;"> For marks conversion criteria <a href="#">Click Here</a></div>
+                                </div>
+                                <div class="row col-md-12  ">
+                                    <div class="col-md-12">
+                                        <hr>
+                                        <p style="color:red"> Please confirm that the marks entered in both Obtained Marks and Total Marks are inclusive of islamiyat  and Pak Studies Marks. </p><hr>
+                                    </div>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Year </th>
+                                                <th>Obtained Marks <span class="sprq">*</span></th>
+                                                <th>Total Marks <span class="sprq">*</span></th>
+                                                <th>Division <span class="sprq">*</span></th>
+                                                <th>Attempt <span class="sprq">*</span></th>
+                                                <th>Position <span class="sprq">*</span></th>
+                                                <th>DMC Image <span class="sprq">*</span></th>
+                                                <th>Position Certificate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr id="rowDegree1">
+                                                <td> 1 <input type="hidden" id="hfdRowDegree1Id" value="0" /></td>
+                                                <td> <input class="form-control numeric" type="text" id="txtRowDegree1MarksObtain" len="4"> </td>
+                                                <td> <input type="text" class="form-control numeric" id="txtRowDegree1MarksTotal" len="4"> </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree1Division">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                        <option value="3"> 3rd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree1Attempt">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree1Position">
+                                                        <option value="0"> None </option>
+                                                        <option value="1"> 1st</option>
+
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowDegree1" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowDegree1" value="" />
+                                                    <img id="imgRowDegree1" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowDegree1" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowPositionCertificate1" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowPositionCertificate1" value="" />
+                                                    <img id="imgRowPositionCertificate1" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowPositionCertificate1" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                            </tr>
+                                            <tr id="rowDegree2">
+                                                <td> 2 <input type="hidden" id="hfdRowDegree2Id" value="0" /></td>
+                                                <td> <input class="form-control numeric" type="text" id="txtRowDegree2MarksObtain" len="4"> </td>
+                                                <td> <input type="text" class="form-control numeric" id="txtRowDegree2MarksTotal" len="4"> </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree2Division">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                        <option value="3"> 3rd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree2Attempt">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree2Position">
+                                                        <option value="0"> None </option>
+                                                        <option value="1"> 1st</option>
+
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowDegree2" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowDegree2" value="" />
+                                                    <img id="imgRowDegree2" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowDegree2" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowPositionCertificate2" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowPositionCertificate2" value="" />
+                                                    <img id="imgRowPositionCertificate2" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowPositionCertificate2" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                            </tr>
+                                            <tr id="rowDegree3">
+                                                <td> 3  <input type="hidden" id="hfdRowDegree3Id" value="0" /></td>
+                                                <td> <input class="form-control numeric" type="text" id="txtRowDegree3MarksObtain" len="4"> </td>
+                                                <td> <input type="text" class="form-control numeric" id="txtRowDegree3MarksTotal" len="4"> </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree3Division">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                        <option value="3"> 3rd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree3Attempt">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree3Position">
+                                                        <option value="0"> None </option>
+                                                        <option value="1"> 1st</option>
+
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowDegree3" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowDegree3" value="" />
+                                                    <img id="imgRowDegree3" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowDegree3" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowPositionCertificate3" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowPositionCertificate3" value="" />
+                                                    <img id="imgRowPositionCertificate3" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowPositionCertificate3" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                            </tr>
+                                            <tr id="rowDegree4">
+                                                <td> 4  <input type="hidden" id="hfdRowDegree4Id" value="0" /></td>
+                                                <td> <input class="form-control numeric" type="text" id="txtRowDegree4MarksObtain" len="4"> </td>
+                                                <td> <input type="text" class="form-control numeric" id="txtRowDegree4MarksTotal" len="4"> </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree4Division">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                        <option value="3"> 3rd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree4Attempt">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree4Position">
+                                                        <option value="0"> None </option>
+                                                        <option value="1"> 1st</option>
+
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowDegree4" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowDegree4" value="" />
+                                                    <img id="imgRowDegree4" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowDegree4" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowPositionCertificate4" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowPositionCertificate4" value="" />
+                                                    <img id="imgRowPositionCertificate4" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowPositionCertificate4" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                            </tr>
+                                            <tr id="rowDegree5">
+                                                <td> 5  <input type="hidden" id="hfdRowDegree5Id" value="0" /></td>
+                                                <td> <input class="form-control numeric" type="text" id="txtRowDegree5MarksObtain" len="4"> </td>
+                                                <td> <input type="text" class="form-control numeric" id="txtRowDegree5MarksTotal" len="4"> </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree5Division">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                        <option value="3"> 3rd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree5Attempt">
+                                                        <option value="1"> 1st</option>
+                                                        <option value="2"> 2nd </option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" id="ddlRowDegree5Position">
+                                                        <option value="0"> None </option>
+                                                        <option value="1"> 1st</option>
+
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowDegree5" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowDegree5" value="" />
+                                                    <img id="imgRowDegree5" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowDegree5" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                                <td>
+                                                    <input type="file" id="flRowPositionCertificate5" class="form-control flup" tabindex="2">
+                                                    <input type="hidden" id="hfdRowPositionCertificate5" value="" />
+                                                    <img id="imgRowPositionCertificate5" class="flup-img" src="" alt="" style="display:none;" />
+                                                    <a id="rmvRowPositionCertificate5" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </fieldset>
+                            <fieldset class="grd-foreign" style="display:none">
+                                <legend>Foreign Degree:</legend>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <hr>
+                                        <p> Please confirm that the marks entered in both Obtained Marks and Total Marks. </p><hr>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label> Obtained Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtObtainMarksForeign" id="txtObtainMarksForeign" class="form-control numeric" len="5">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label> Total Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtTotalMarksForeign" id="txtTotalMarksForeign" class="form-control numeric" len="5">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label> DMC Front Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flDMCForeignFront" class="form-control flup" tabindex="1">
+                                            <input type="hidden" id="hfdDMCForeignFront" value="" />
+                                            <img id="imgDMCForeignFront" class="flup-img" src="" alt="" style="display:none;" />
+                                            <a id="rmvDMCForeignFront" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label> DMC Back Side Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flDMCForeignBack" class="form-control flup" tabindex="1">
+                                            <input type="hidden" id="hfdDMCForeignBack" value="" />
+                                            <img id="imgDMCForeignBack" class="flup-img" src="" alt="" style="display:none;" />
+                                            <a id="rmvDMCForeignBack" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="grd-foreign grd-national" style="display:none">
+                                <legend>Attemps:</legend>
+                                @*Foreign DMC End*@
+                                <div class="row " style="display:none;">
+                                    <div class="col-md-12" style="padding: 20px 15px; ">
+                                        <label style="word-wrap: break-word; line-height: 16px; float: left;" for="chkForeignNational">
+                                            <input type="checkbox" name="checkbox" id="chkForeignNational" value="Foriegn_National" style="float: left;margin: 0px 5px;height: 18px;width: 20px;">
+                                            Foreign National ( Only for Foreign Nationals. If you are Pakistani Citizen, please do not select this option)
+                                        </label>
+                                    </div>
+                                </div>
+                                @*Foreign national End*@
+
+                                <div class="col-md-12 grd-foreign">
+                                    <hr>
+                                    <p> No marks NEB attempt </p>
+                                    <p style="display:none"> Passed the NEB exam in single sitting, then it will be scored. </p><hr>
+                                </div>
+                                <table class="table grd-foreign">
+                                    <thead>
+                                        <tr><th>Attempt(NEB Exam) <span class="sprq">*</span></th><th>PMDC  Result <span class="sprq">*</span></th> </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr id="rowPMDC1">
+                                            <td>
+                                                <input type="hidden" id="hfdRowPMDC1Id" value="0" />
+                                                <select class="form-control" name="ddlRowPMDC1Attempt" id="ddlRowPMDC1Attempt">
+                                                    <option value="1"> 1st</option>
+                                                    <option value="2"> 2nd</option>
+                                                    <option value="3"> 3rd</option>
+                                                    <option value="4"> 4th or more</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="file" id="flRowPMDC1" class="form-control flup" tabindex="2">
+                                                <input type="hidden" id="hfdRowPMDC1" value="" />
+                                                <img id="imgRowPMDC1" class="flup-img" src="" alt="" style="display:none;" />
+                                                <a id="rmvRowPMDC1" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                            </td>
+                                        </tr>
+                                        <tr id="rowPMDC2" style="display:none;">
+                                            <td> 2  <input type="hidden" id="hfdRowPMDC2Id" value="0" /></td>
+                                            <td>
+                                                <select class="form-control" name="ddlRowPMDC2Attempt" id="ddlRowPMDC2Attempt">
+                                                    <option value="1"> 1st</option>
+                                                    <option value="2"> 2nd</option>
+                                                    <option value="3"> 3rd</option>
+                                                    <option value="2"> 4th or more</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="file" id="flRowPMDC2" class="form-control flup" tabindex="2">
+                                                <input type="hidden" id="hfdRowPMDC2" value="" />
+                                                <img id="imgRowPMDC2" class="flup-img" src="" alt="" style="display:none;" />
+                                                <a id="rmvRowPMDC2" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                            </td>
+                                        </tr>
+                                        <tr id="rowPMDC3" style="display:none;">
+                                            <td> 3  <input type="hidden" id="hfdRowPMDC3Id" value="0" /></td>
+                                            <td>
+                                                <select class="form-control" name="ddlRowPMDC3Attempt" id="ddlRowPMDC3Attempt">
+                                                    <option value="1"> 1st</option>
+                                                    <option value="2"> 2nd</option>
+                                                    <option value="3"> 3rd</option>
+                                                    <option value="2"> 4th or more</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="file" id="flRowPMDC3" class="form-control flup" tabindex="2">
+                                                <input type="hidden" id="hfdRowPMDC3" value="" />
+                                                <img id="imgRowPMDC3" class="flup-img" src="" alt="" style="display:none;" />
+                                                <a id="rmvRowPMDC3" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="row" style="padding:5px 10px; display:none; ">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> PMC Certificate <span class="sprq">*</span></label>
+                                            <input type="file" id="flPMDCCertificate" class="form-control flup" tabindex="2">
+                                            <input type="hidden" id="hfdCertificate" value="" />
+                                            <img id="imgPMDCCertificate" class="flup-img" src="" alt="" style="display:none;" />
+                                            <a id="rmvPMDCCertificate" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset>
+                                <legend>Certificates:</legend>
+                                <div class="row" style="padding:5px 10px; ">
+                                    <div class="col-xs-12 col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            <label> Attempt Certificate <span class="sprq">*</span></label>
+                                            <input type="file" id="flCertificate" class="form-control flup" tabindex="2">
+                                            <input type="hidden" id="hfdCertificate" value="" />
+                                            <img id="imgCertificate" class="flup-img" src="" alt="" style="display:none;" />
+                                            <a id="rmvCertificate" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            <label> Matric DMC Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flMatric" class="form-control flup" tabindex="2">
+                                            <input type="hidden" id="hfdMatric" value="" />
+                                            <img id="imgMatric" class="flup-img" src="" alt="" style="display:none;" />
+                                            <a id="rmvMatric" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            <label> FSC/Equivalent DMC Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flFSC" class="form-control flup" tabindex="2">
+                                            <input type="hidden" id="hfdFSC" value="" />
+                                            <img id="imgFSC" class="flup-img" src="" alt="" style="display:none;" />
+                                            <a id="rmvFSC" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            <label> MBBS/BDS Degree Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flDegree" class="form-control flup" tabindex="2">
+                                            <input type="hidden" id="hfdDegree" value="" />
+                                            <img id="imgDegree" class="flup-img" src="" alt="" style="display:none;" />
+                                            <a id="rmvDegree" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend>Level-III Information:</legend>
+                                <div class="row" style="padding:5px 10px; ">
+                                    <div class="col-xs-12 col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            <label id="currentProgram" name="program"> <input id="chkType1" type="checkbox" class="chkType" value="1" /> FCPS </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            <label id="currentProgram" name="program"> <input id="chkType2" type="checkbox" class="chkType" value="2" /> MS </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-3 col-md-3">
+                                        <div class="form-group">
+                                            <label id="currentProgram" name="program">  <input id="chkType3" type="checkbox" class="chkType" value="3" /> MD </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </fieldset>
+
+
+                            <fieldset id="fieldType1" class="fieldType" style="display:none">
+                                <legend> <label> @*<input id="chkType1" type="checkbox" class="chkType" />*@ @*Part -1*@ FCPS @*Marks*@: </label></legend>
+                                <input type="hidden" id="hfdTypeId1" class="hfdTypeId" value="" />
+                                <div class="row col-md-12 " style="display:none;">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Obtained Marks * </label>
+                                            <input type="text" name="txtObtainMarksType1" id="txtObtainMarksType1" class="form-control txtObtainMarksType" required="">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Total Marks *</label>
+                                            <input type="text" name="txtTotalMarksType1" id="txtTotalMarksType1" class="form-control" required="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-md-12 fieldType1">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Discipline</label>
+                                            @{
+                                                var listDisciplineFCPS = Model.listDiscipline.Where(x => x.typeId == 1).OrderBy(x => x.name).ToList();
+                                                <select id="ddlDisciplineId1" class="form-control ddlDisciplineId">
+                                                    <option value="0" selected="selected">Select One</option>
+                                                    @foreach (var item in listDisciplineFCPS)
+                                                    {
+                                                        <option value="@item.disciplineId">@item.name</option>
+                                                    }
+                                                </select>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Passing Date <span class="sprq">*</span> <span id="spnPassingDateType1" class="lbl-err" style="display:none;">Invalid date</span></label>
+                                            <input required="required" type="text" name="txtPassingDateType1" id="txtPassingDateType1" class="form-control datepicker txtPassingDateType">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Certificate Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flType1" class="form-control flup flType" tabindex="2">
+                                            <input type="hidden" id="hfdType1" value="" class="hfdType" />
+                                            <img id="imgType1" class="flup-img imgType" src="" alt="" style="display:none;" />
+                                            <a id="rmvType1" class="removeImage rmvType" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+
+                            <fieldset id="fieldType2" class="fieldType" style="display:none">
+                                <legend> <label> @*<input id="chkType2" type="checkbox" class="chkType" />*@ MS : </label></legend>
+                                <input type="hidden" id="hfdTypeId2" class="hfdTypeId" value="" />
+                                <div class="row col-md-12 fieldType2">
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Obtained Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtObtainMarksType2" id="txtObtainMarksType2" class="form-control txtObtainMarksType numeric" len="3" required="">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Total Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtTotalMarksType2" id="txtTotalMarksType2" class="form-control txtTotalMarksType numeric" len="3" required="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-md-12 fieldType2">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Passing Date <span class="sprq">*</span> <span id="spnPassingDateType2" class="lbl-err" style="display:none;">Invalid date</span></label>
+                                            <input required="required" type="text" name="txtPassingDateType2" id="txtPassingDateType2" class="form-control datepicker txtPassingDateType">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Certificate Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flType2" class="form-control flup flType" tabindex="2">
+                                            <input type="hidden" id="hfdType2" value="" class="hfdType" />
+                                            <img id="imgType2" class="flup-img imgType" src="" alt="" style="display:none;" />
+                                            <a id="rmvType2" class="removeImage rmvType" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset id="fieldType3" class="fieldType" style="display:none">
+                                <legend> <label>  MD : </label></legend>
+                                <input type="hidden" id="hfdTypeId3" class="hfdTypeId" value="" />
+                                <div class="row col-md-12 fieldType3">
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Obtained Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtObtainMarksType3" id="txtObtainMarksType3" class="form-control txtObtainMarksType numeric" len="3" required="">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Total Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtTotalMarksType3" id="txtTotalMarksType3" class="form-control txtTotalMarksType numeric" len="3" required="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-md-12 fieldType3">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Passing Date <span class="sprq">*</span><span id="spnPassingDateType3" class="lbl-err" style="display:none;">Invalid date</span></label>
+                                            <input required="required" type="text" name="txtPassingDateType3" id="txtPassingDateType3" class="form-control datepicker txtPassingDateType">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Certificate Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flType3" class="form-control flup flType" tabindex="2">
+                                            <input type="hidden" id="hfdType3" value="" class="hfdType" />
+                                            <img id="imgType3" class="flup-img imgType" src="" alt="" style="display:none;" />
+                                            <a id="rmvType3" class="removeImage rmvType" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset id="fieldType5" class="fieldType" style="display:none">
+                                <legend> <label> <input id="chkType5" type="checkbox" class="chkType" /> FCPS Dentistry Marks: </label></legend>
+                                <input type="hidden" id="hfdTypeId5" class="hfdTypeId" value="" />
+                                <div class="row col-md-12" style="display:none">
+
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Obtained Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtObtainMarksType5" id="txtObtainMarksType5" class="form-control txtObtainMarksType" required="">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Total Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtTotalMarksType5" id="txtTotalMarksType5" class="form-control txtTotalMarksType" required="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-md-12 fieldType5">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Passing Date <span class="sprq">*</span><span id="spnPassingDateType4" class="lbl-err" style="display:none;">Invalid date</span></label>
+                                            <input required="required" type="text" name="txtPassingDateType5" id="txtPassingDateType5" class="form-control datepicker txtPassingDateType">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Certificate Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flType5" class="form-control flup flType" tabindex="2">
+                                            <input type="hidden" id="hfdType5" value="" class="hfdType" />
+                                            <img id="imgType5" class="flup-img imgType" src="" alt="" style="display:none;" />
+                                            <a id="rmvType5" class="removeImage rmvType" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset id="fieldType4" class="fieldType" style="display:none">
+                                <legend> <label> <input id="chkType4" type="checkbox" class="chkType" /> MDS Marks: </label></legend>
+                                <input type="hidden" id="hfdTypeId4" class="hfdTypeId" value="" />
+                                <div class="row col-md-12 fieldType4">
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Obtained Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtObtainMarksType4" id="txtObtainMarksType4" class="form-control txtObtainMarksType numeric" len="3" required="">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6">
+                                        <div class="form-group">
+                                            <label> Total Marks <span class="sprq">*</span></label>
+                                            <input type="text" name="txtTotalMarksType4" id="txtTotalMarksType4" class="form-control txtTotalMarksType numeric" len="3" required="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-md-12 fieldType4">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Passing Date <span class="sprq">*</span><span id="spnPassingDateType5" class="lbl-err" style="display:none;">Invalid date</span></label>
+                                            <input required="required" type="text" name="txtPassingDateType4" id="txtPassingDateType4" class="form-control datepicker txtPassingDateType">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Certificate Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flType4" class="form-control flup flType" tabindex="2">
+                                            <input type="hidden" id="hfdType4" value="" class="hfdType" />
+                                            <img id="imgType4" class="flup-img imgType" src="" alt="" style="display:none;" />
+                                            <a id="rmvType4" class="removeImage rmvType" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset id="fieldType6" class="fieldType" style="display:none">
+                                <legend> <label> @*<input id="chkType6" type="checkbox" class="chkType" />*@ Level 3 Details: </label></legend>
+                                <input type="hidden" id="hfdTypeId6" class="hfdTypeId" value="" />
+
+                                <div class="row col-md-12 fieldType6">
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Speciality</label>
+                                            @{
+                                                var listSpeciality = Model.listSpeciality.Where(x => x.isActive == true).OrderBy(x => x.name).ToList();
+                                                <select id="ddlSpecialityId6" class="form-control ddlSpecialityId">
+                                                    @foreach (var item in listSpeciality)
+                                                    {
+                                                        <option value="@item.specialityId">@item.name</option>
+                                                    }
+                                                </select>
+                                            }
+
+                                        </div>
+
+                                    </div>
+                                    <div class="col-xs-12 col-sm-2 col-md-2">
+                                        <div class="form-group">
+                                            <label>Program</label>
+
+                                            <select id="ddlProgramId6" class="form-control ddlProgramId">
+                                                <option value="1" selected="selected">FCPS</option>
+                                                <option value="2" selected="selected">MS</option>
+                                                <option value="3" selected="selected">MD</option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-2 col-md-2">
+                                        <div class="form-group">
+                                            <label>Gold Medal</label>
+
+                                            <select id="ddlGoldMedal6" class="form-control ddlGoldMedal">
+
+                                                <option value="1" selected="selected">Yes</option>
+                                                <option value="2">No</option>
+                                            </select>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label>Passing Date <span class="sprq">*</span> <span id="spnPassingDatelevel3" class="lbl-err" style="display:none;">Invalid date</span></label>
+                                            <input required="required" type="text" name="txtPassingDatelevel3" id="txtPassingDatelevel3" class="form-control datepicker txtPassingDatelevel3">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Obtained Marks  <span style="color:red;">*</span></label>
+                                            <input type="text" name="txtObtainMarkslevel3" id="txtObtainMarkslevel3" class="form-control txtObtainMarkslevel3" required="">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Total Marks <span style="color:red;">*</span></label>
+                                            <input type="text" name="txtTotalMarkslevel3" id="txtTotalMarkslevel3" class="form-control" required="">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4 col-md-4">
+                                        <div class="form-group">
+                                            <label> Certificate Image <span class="sprq">*</span></label>
+                                            <input type="file" id="flType6" class="form-control flup flType" tabindex="2">
+                                            <input type="hidden" id="hfdType6" value="" class="hfdType" />
+                                            <img id="imgType6" class="flup-img imgType" src="" alt="" style="display:none;" />
+                                            <a id="rmvType6" class="removeImage rmvType" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="col-sm-12">
+                                <span id="btnSaveEducation" type="button" class="btn btn-lg mb10 mt5 pull-right btn-red" tabindex="19">Update</span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @Html.Partial("_NotePageBottom")
+            </div>
+        </div>
+    </div>
+</div>

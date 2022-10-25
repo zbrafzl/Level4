@@ -1,0 +1,2 @@
+D:\Project\level4\Level4\Level4\Prp.Data\obj\Release\Prp.Data.csproj.AssemblyReference.cache
+D:\Project\level4\Level4\Level4\Prp.Data\obj\Release\Prp.Data.csproj.CoreCompileInputs.cache
