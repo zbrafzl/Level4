@@ -112,12 +112,12 @@
                                     {
                                         if (Model.applicationStatusId == 8)
                                         {
-                                            <li>
+                                            @*<li>
                                                 <a href="/application-status">View Status</a>
                                             </li>
                                             <li class="blink">
                                                 <a href="/phftt/grievance-verification-application">Apply Grievance</a>
-                                            </li>
+                                            </li>*@
                                             @* <li class="blink">
                                                     <a href="/applicant/joining">Joining</a>
                                                 </li>*@
@@ -125,9 +125,9 @@
                                                 <a href="/profile-view-print">View Profile</a>
                                                 <input type="hidden" id="hfdApplicantId" value="@(Model.loggedInUser.applicantId)" />
                                             </li>
-                                            <li class="blink">
+                                            @*<li class="blink">
                                                 <a href="@("/"+ProjConstant.preUrl + "/applicant/consent")">Give Consent</a>
-                                            </li>
+                                            </li>*@
                                         }
                                         else
                                         {

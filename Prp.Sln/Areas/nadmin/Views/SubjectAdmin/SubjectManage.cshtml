@@ -66,7 +66,7 @@
                             <th class="column-title">Speciality </th>
                             <th class="column-title">Super Speciality </th>
                             <th class="column-title">Status </th>
-                            <th class="column-title">Sort Order </th>
+                            @*<th class="column-title">Sort Order </th>*@
                             <th class="column-title">Jobs </th>
                             <th>
                                 <span class="nobr">Action</span>
@@ -91,7 +91,7 @@
                 <td>In-Active</td>}
 
                     <td>@item.sortOrder</td>
-                    <td>@item.totalJobs</td>
+                    @*<td>@item.totalJobs</td>*@
                     <td>
                         @if (Model.loggedInUser.typeId == ProjConstant.Constant.UserType.institute)
                         {

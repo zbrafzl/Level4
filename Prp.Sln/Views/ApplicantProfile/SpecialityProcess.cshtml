@@ -21,14 +21,13 @@
 
     <script>
 
-        var applicantId = 0, objApplicant = {}, applicantSpecilityId = 0
+        var applicantId = 0, objApplicant = {}, applicantSpecilityId = 0, totalSpecialties = 0
             , objSpecility = {}, objSpecilityList = [], objTypeList = [];
 
         var typeId = 0, specialityId = 0, superSpecialityId =0, hospitalId = 0, listHospitalByTypeAndSepecility = [];
 
 
         $(document).ready(function () {
-
             $("#divHtml").html("");
 
 
@@ -142,7 +141,7 @@
             var obj = {};
             obj.typeId = typeId;
             obj.reffId = applicantId;
-            obj.condition = "GetThoseHasJobsByTypeIdAndQuotaAndApplicantId";//"GetThoseHasJobsByTypeId";
+            obj.condition = "GetThoseHasJobsByTypeId";//"GetThoseHasJobsByTypeId";
 
             DDLSetToDefault("ddlSpeciality", 'Select One', 0);
             DDLSetToDefault("ddlHospital", 'Select One', 0);
@@ -222,20 +221,25 @@
                 if (checkPrefNo != null) {
 
                     if (checkPrefNo.status == true) {
-
-                        var resp = CallActionPost("/ApplicantProfile/ApplicantSpecilityAddUpdate", objSpecility);
-                        if (resp != null) {
-                            if (resp.status == true) {
-                                ClearSpecilityForm();
-                                GetApplicantSpecilityList();
+                        if (totalSpecialties < 3) {
+                            var resp = CallActionPost("/ApplicantProfile/ApplicantSpecilityAddUpdate", objSpecility);
+                            if (resp != null) {
+                                if (resp.status == true) {
+                                    ClearSpecilityForm();
+                                    GetApplicantSpecilityList();
+                                }
+                                else {
+                                    alert(resp.message);
+                                }
                             }
                             else {
-                                alert(resp.message);
+                                alert("Some thing went wrong!");
                             }
                         }
                         else {
-                            alert("Some thing went wrong!");
+                            alert("Maximum three preferences allowed!");
                         }
+                        
                         /*
                          -----------------------------*/
                     }
@@ -316,6 +320,8 @@
             if (resp != null && resp.length > 0) {
                 objSpecilityList = resp;
                 BindPenelSpecilityList();
+                //alert(objSpecilityList.length);
+                totalSpecialties = objSpecilityList.length;
             }
         }
 

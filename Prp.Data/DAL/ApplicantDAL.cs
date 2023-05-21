@@ -252,10 +252,35 @@ namespace Prp.Data
 
         public List<fnSpecialityForApplicant_Result> GetSpecialityForApplicant(SpecialityByApplicantSearch obj)
         {
+            SqlConnection con = new SqlConnection();
+            con = new SqlConnection(PrpDbConnectADO.Conn);
+            var theList = new List<fnSpecialityForApplicant_Result>();
+            string query = "";
+            query += "Select distinct s.specialityId, sp.name ";
+            query += "From tblDisciplineSpeciality s ";
+            query += "left outer join tblSpeciality sp on sp.specialityId = s.specialityId ";
+            query += "Where s.disciplineId in("+obj.disciplineId+", "+ obj.disciplineIdOptional + ") ";
+            DataTable dt = new DataTable();
+            SqlDataAdapter sda = new SqlDataAdapter(query, con);
+            try {
+                sda.Fill(dt);
+                foreach (DataRow dr in dt.Rows)
+                {
+                    fnSpecialityForApplicant_Result item = new fnSpecialityForApplicant_Result();
+                    item.id = dr[0].TooInt();
+                    item.key = dr[1].TooString();
+                    theList.Add(item);
+                }
+            }
+            catch(Exception ex)
+            {
 
-            var tlist = db.fnSpecialityForApplicant(obj.typeId, obj.disciplineId, obj.disciplineIdOptional).ToList();
 
-            return tlist;
+            }
+            
+            //var tlist = db.fnSpecialityForApplicant(obj.typeId, obj.disciplineId, obj.disciplineIdOptional).ToList();
+
+            return theList;
         }
         public Applicant GetApplicantByEmail(string emailId)
         {
@@ -700,9 +725,28 @@ namespace Prp.Data
                 {
                     try
                     {
-                        db.spApplicantLevel3AddUpdate(obj.applicantLevel3Details, obj.inductionId, obj.phaseId
-                            , obj.applicantId, obj.typeId
-                           , obj.disciplineId,  obj.imageCertificate,obj.specialityId,obj.medals,obj.passingDate,obj.obtainMarks,obj.totalMarks);
+                        SqlCommand cmd = new SqlCommand
+                        {
+                            CommandType = CommandType.StoredProcedure,
+                            CommandText = "[dbo].[spApplicantLevel3AddUpdate]"
+                        };
+                        cmd.Parameters.AddWithValue("@applicantLevel3Details", obj.applicantLevel3Details);
+                        cmd.Parameters.AddWithValue("@inductionId", obj.inductionId);
+                        cmd.Parameters.AddWithValue("@phaseId", obj.phaseId);
+                        cmd.Parameters.AddWithValue("@applicantId", obj.applicantId);
+                        cmd.Parameters.AddWithValue("@typeId", obj.typeId);
+                        cmd.Parameters.AddWithValue("@disciplineId", obj.disciplineId);
+                        cmd.Parameters.AddWithValue("@imageCertificate", obj.imageCertificate);
+                        cmd.Parameters.AddWithValue("@specialityId", obj.specialityId);
+                        cmd.Parameters.AddWithValue("@medals", obj.medals);
+                        cmd.Parameters.AddWithValue("@passingDate", obj.passingDate);
+                        cmd.Parameters.AddWithValue("@obtainMarks", obj.obtainMarks);
+                        cmd.Parameters.AddWithValue("@totalMarks", obj.totalMarks);
+                        PrpDbADO.ExecuteNonQuery(cmd);
+
+                        //db.spApplicantLevel3AddUpdate(obj.applicantLevel3Details, obj.inductionId, obj.phaseId
+                        //    , obj.applicantId, obj.typeId
+                        //   , obj.disciplineId,  obj.imageCertificate,obj.specialityId,obj.medals,obj.passingDate,obj.obtainMarks,obj.totalMarks);
                     }
                     catch (Exception ex)
                     {
@@ -1375,7 +1419,7 @@ namespace Prp.Data
             ApplicantVoucher obj = new ApplicantVoucher();
             try
             {
-                if (inductionId == 12)
+                if (inductionId == 13)
                 {
                     var dbt = db.tblApplicantVouchers.FirstOrDefault(x => x.applicantId == applicantId);
                     if (dbt != null && dbt.applicantVoucherId > 0)

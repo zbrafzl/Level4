@@ -429,7 +429,7 @@ namespace Prp.Sln.Controllers
                 model.listDistinction = new ApplicantDAL().GetApplicantDistinctionList(0, 0, loggedInUser.applicantId);
                 model.listResearchPaper = new ApplicantDAL().GetApplicantResearchPaperListDetail(0, 0, loggedInUser.applicantId);
                 model.listSpecility = new ApplicantDAL().GetApplicantSpecilityListWithMarks(0, 0, loggedInUser.applicantId);
-                model.voucher = new ApplicantDAL().GetApplicantVoucher(0, 0, loggedInUser.applicantId);
+                model.voucher = new ApplicantDAL().GetApplicantVoucher(13, 0, loggedInUser.applicantId);
                 model.listMarks = new MarksDAL().GetMarksAccumulativeByApplicant(loggedInUser.applicantId);
 
             }
@@ -945,7 +945,7 @@ namespace Prp.Sln.Controllers
         [HttpGet]
         public JsonResult GetApplicantVoucher(int applicantId)
         {
-            ApplicantVoucher applicant = new ApplicantDAL().GetApplicantVoucher(0, 0, applicantId);
+            ApplicantVoucher applicant = new ApplicantDAL().GetApplicantVoucher(13, 1, applicantId);
             return Json(applicant, JsonRequestBehavior.AllowGet);
         }
 

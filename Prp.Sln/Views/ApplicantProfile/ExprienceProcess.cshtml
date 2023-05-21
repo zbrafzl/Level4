@@ -40,7 +40,7 @@
 
             var dateFormatDatePocker = 'dd/mm/yyyy';
 
-            var endDate = new Date(2022, 2 - 1, 07)
+            var endDate = new Date(2023, 5 - 1, 21)
 
             $("#txtExpDateStart").datepicker({
                 format: dateFormatDatePocker,
@@ -881,6 +881,7 @@
                 $("#chkIsCurrent").attr("checked", "checked");
                 $("#txtExpDateEnd").val("");
             }
+
             else $("#txtExpDateEnd").datepicker('setDates', ToDateFormatDDMMYYYWithSlash(JsonToDate(objExprience.endDate)));
                 // $("#txtExpDateEndPost").datepicker('setDates', ToDateFormatDDMMYYYWithSlash(JsonToDate(objExprience.endDate)));
                     

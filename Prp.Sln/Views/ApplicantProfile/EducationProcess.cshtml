@@ -19,10 +19,10 @@
 
         var applicantId = 0, applicantDetailId = 0, objApplicant = {}, objAppInfo = {}, objEducation = {},
             imagesPath = "", provinceId = 0, instituteTypeId = 0, graduateTypeId = 0, graduateType = 0
-            , degreeTypeId, noOfYears = 0
+            , degreeTypeId, noOfYears = 0, diciplineId = 0
             , applicantDegreeDetailId = 0, specialityIdFCPS = 0, specialityIdMSMD = 0
 
-        var objDegree = {}, objEducation = {}, objDegreeMarksList = [], objCertificateList = [];
+        var objDegree = {}, objEducation = {}, objDegreeMarksList = [], objCertificateList = []; objLevel3List = [];
 
         $(document).ready(function () {
 
@@ -198,14 +198,17 @@
         function SaveAndProceed() {
 
             var isError = ValidateFormEducation();
-            alert(isError);
             if (isError == false) {
 
-                var resp = CallActionPost("/ApplicationAdmin/ApplicantEducationAddUpdate", objEducation);
-                if (resp != null && resp.status == true) {
-                    window.location = "/ad/applicant-education";
-                }
+                var r = confirm("Please confirm that the marks entered in both Obtained Marks and Total Marks are inclusive of islamiyat and Pak Studies Marks.");
 
+                if (r == true) {
+
+                    var resp = CallActionPost("/ApplicantProfile/ApplicantEducationAddUpdate", objEducation);
+                    if (resp != null && resp.status == true) {
+                        window.location = "/applicant-exprience";
+                    }
+                }
             }
 
         }
@@ -375,7 +378,7 @@
                 typeIdEnd = 3;
             } else {
                 typeIdStart = 4;
-                typeIdEnd = 6;
+                typeIdEnd = 5;
             }
 
             var typeIds = "";
@@ -469,7 +472,6 @@
 
                 if (objDegree.instituteTypeId == 0) {
                     $("#ddlInstituteType").addClass("req-fld");
-                    alert('471');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "ddlInstituteType";
@@ -479,7 +481,6 @@
                 if (objDegree.instituteId == 0) {
                     $("#ddlInstitute").addClass("req-fld");
                     $("#ddlInstitute_chosen").addClass("req-fld");
-                    alert('482');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "ddlInstitute";
@@ -494,7 +495,6 @@
                         if (objDegreeMarks.obtainMarks == 0) {
                             ctrlLoop = "txtRowDegree" + i + "MarksObtain";
                             $("#" + ctrlLoop).addClass("req-fld");
-                            alert('497');
                             isError = true;
                             if (ctrl == "")
                                 ctrl = ctrlLoop;
@@ -503,14 +503,12 @@
                         if (objDegreeMarks.totalMarks == 0) {
                             ctrlLoop = "txtRowDegree" + i + "MarksTotal";
                             $("#" + ctrlLoop).addClass("req-fld");
-                            alert('506');
                             isError = true;
                             if (ctrl == "")
                                 ctrl = ctrlLoop;
                         }
 
                         if (objDegreeMarks.obtainMarks > objDegreeMarks.totalMarks) {
-                            alert('513');
                             isError = true;
 
                             $("#" + "txtRowDegree" + i + "MarksTotal").addClass("req-fld");
@@ -524,7 +522,6 @@
                         if (objDegreeMarks.attempt == 0) {
                             ctrlLoop = "ddlRowDegree" + i + "Attempt";
                             $("#" + ctrlLoop).addClass("req-fld");
-                            alert('527');
                             isError = true;
                             if (ctrl == "")
                                 ctrl = ctrlLoop;
@@ -533,7 +530,6 @@
                         if (objDegreeMarks.imageDMC == 0) {
                             ctrlLoop = "flRowDegree" + i;
                             $("#" + ctrlLoop).addClass("req-fld");
-                            alert('536');
                             isError = true;
                             if (ctrl == "")
                                 ctrl = ctrlLoop;
@@ -555,7 +551,6 @@
                             if (objDegreeMarks.attempt == 0) {
                                 ctrlLoop = "ddlRowPMDC" + i + "Attempt";
                                 $("#" + ctrlLoop).addClass("req-fld");
-                                alert('558');
                                 isError = true;
                                 if (ctrl == "")
                                     ctrl = ctrlLoop;
@@ -564,7 +559,6 @@
                             if (objDegreeMarks.imageDMC == 0) {
                                 ctrlLoop = "flRowPMDC" + i;
                                 $("#" + ctrlLoop).addClass("req-fld");
-                                alert('567');
                                 isError = true;
                                 if (ctrl == "")
                                     ctrl = ctrlLoop;
@@ -575,7 +569,6 @@
 
                 if (objDegree.totalMarks == 0) {
                     $("#txtTotalMarksForeign").addClass("req-fld");
-                    alert('478');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "txtTotalMarksForeign";
@@ -583,14 +576,12 @@
 
                 if (objDegree.obtainMarks == 0) {
                     $("#txtObtainMarksForeign").addClass("req-fld");
-                    alert('586');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "txtObtainMarksForeign";
                 }
 
                 if (objDegree.obtainMarks > objDegree.totalMarks) {
-                    alert('593');
                     isError = true;
                     alert("Obtain marks greater then total marks in degree. Please enter valid marks");
 
@@ -600,7 +591,6 @@
 
                 if (objDegree.imageDegreeForeignFront == "") {
                     $("#flDMCForeignFront").addClass("req-fld");
-                    alert('603');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "flDMCForeignFront";
@@ -608,7 +598,6 @@
 
                 if (objDegree.imageDegreeForeignBack == "") {
                     $("#flDMCForeignBack").addClass("req-fld");
-                    alert('611');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "flDMCForeignBack";
@@ -625,7 +614,6 @@
 
             if (objDegree.imageDegree == "") {
                 $("#flDegree").addClass("req-fld");
-                alert('628');
                 isError = true;
                 if (ctrl == "")
                     ctrl = "flDegree";
@@ -633,7 +621,6 @@
 
             if (objDegree.imageCertificate == "") {
                 $("#flCertificate").addClass("req-fld");
-                alert('636');
                 isError = true;
                 if (ctrl == "")
                     ctrl = "flCertificate";
@@ -641,7 +628,6 @@
 
             if (objDegree.imageDegreeMatric == "") {
                 $("#flMatric").addClass("req-fld");
-                alert('644');
                 isError = true;
                 if (ctrl == "")
                     ctrl = "flMatric";
@@ -649,7 +635,6 @@
 
             if (objDegree.imageDegreeFSC == "") {
                 $("#flFSC").addClass("req-fld");
-                alert('652');
                 isError = true;
                 if (ctrl == "")
                     ctrl = "flFSC";
@@ -669,7 +654,6 @@
                     if (objType.obtainMarks == 0) {
 
                         $("#txtObtainMarksType" + typeId).addClass("req-fld");
-                        alert('672');
                         isError = true;
                         if (ctrl == "")
                             ctrl = "#txtObtainMarksType" + typeId;
@@ -678,14 +662,13 @@
                     if (objType.totalMarks == "") {
 
                         $("#txtTotalMarksType" + typeId).addClass("req-fld");
-                        alert('682');
                         isError = true;
                         if (ctrl == "")
                             ctrl = "#txtTotalMarksType" + typeId;
                     }
 
                     if (objType.obtainMarks > objType.totalMarks) {
-                        alert('686');
+
                         isError = true;
                         var typeName = "";
                         if (typeId == 1)
@@ -712,7 +695,6 @@
 
                     if (objType.disciplineId == 0) {
                         $("#ddlDisciplineId" + i).addClass("req-fld");
-                        alert('715');
                         isError = true;
                         if (ctrl == "")
                             ctrl = "#ddlDisciplineId" + i;
@@ -721,7 +703,6 @@
 
                 if (objType.datePassing == "") {
                     $("#txtPassingDateType" + typeId).addClass("req-fld");
-                    alert('724');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "#txtPassingDateType" + typeId;
@@ -729,7 +710,6 @@
 
                 if (objType.imageCertificate == "") {
                     $("#flType" + typeId).addClass("req-fld");
-                    alert('732');
                     isError = true;
                     if (ctrl == "")
                         ctrl = "flType" + typeId;
@@ -748,7 +728,6 @@
 
                     if (objType.disciplineId == 0) {
                         $("#ddlDisciplineId0").addClass("req-fld");
-                        alert('751');
                         isError = true;
                         if (ctrl == "")
                             ctrl = "#ddlDisciplineId0";
@@ -756,7 +735,6 @@
 
                     if (objType.datePassing == "") {
                         $("#txtPassingDateType0").addClass("req-fld");
-                        alert('758');
                         isError = true;
                         if (ctrl == "")
                             ctrl = "#txtPassingDateType0";
@@ -764,7 +742,6 @@
 
                     if (objType.imageCertificate == "") {
                         $("#flType0").addClass("req-fld");
-                        alert('766');
                         isError = true;
                         if (ctrl == "")
                             ctrl = "flType0";
@@ -794,7 +771,6 @@
             objEducation.listLevel3 = objLevel3List;
 
             if (objCertificateList == null || objCertificateList.length == 0) {
-                alert('797');
                 isError = true;
 
                 alert("Please select minimum one certification (FCPS,MS/MD, MSD)");
@@ -821,7 +797,6 @@
             objAppInfo = CallActionGet("/ApplicantProfile/GetApplicantInfoDetail?applicantId=" + applicantId);
 
             var respEdu = CallActionGet("/ApplicantProfile/GetApplicantEducationData?applicantId=" + applicantId);
-            console.log(respEdu);
             if (respEdu != null) {
 
                 if (respEdu.applicantDegree != null && respEdu.applicantDegree.applicantDegreeDetailId > 0) {
@@ -1278,6 +1253,7 @@
 
             $("#ddlSpecialityId6").trigger("chosen:updated");
         }
+
 
     </script>
 
@@ -1761,24 +1737,39 @@
                                 <div class="row" style="padding:5px 10px; ">
                                     <div class="col-xs-12 col-sm-3 col-md-3">
                                         <div class="form-group">
-                                            <label id="currentProgram" name="program"> <input id="chkType1" type="checkbox" class="chkType"  value="1"/> FCPS </label>
+                                            <label id="currentProgram" name="program"> <input id="chkType1" type="checkbox" class="chkType" value="1" /> FCPS </label>
                                         </div>
                                     </div>
                                     <div class="col-xs-12 col-sm-3 col-md-3">
                                         <div class="form-group">
-                                            <label id="currentProgram"  name="program"> <input id="chkType2" type="checkbox" class="chkType" value="2" /> MS </label>
+                                            <label id="currentProgram" name="program"> <input id="chkType2" type="checkbox" class="chkType" value="2" /> MS </label>
                                         </div>
                                     </div>
                                     <div class="col-xs-12 col-sm-3 col-md-3">
                                         <div class="form-group">
-                                            <label id="currentProgram"  name="program">  <input id="chkType3" type="checkbox" class="chkType" value="3" /> MD </label>
+                                            <label id="currentProgram" name="program">  <input id="chkType3" type="checkbox" class="chkType" value="3" /> MD </label>
                                         </div>
                                     </div>
 
                                 </div>
                             </fieldset>
 
-                            
+                            @*<fieldset id="fieldFcpsExemption">
+                                    <legend> <label> <input id="chkFcpsExemption" type="checkbox" class="" /> Part -1 FCPS Exemption: </label></legend>
+                                    <div id="divFcpsExemptionCertificate" class="row col-md-12 " style="display:none;">
+                                        <div class="col-xs-12 col-sm-4 col-md-4">
+                                            <div class="form-group">
+                                                <label> Fcps Exemption Certificate <span class="sprq">*</span></label>
+                                                <input type="file" id="flFcpsExemption" class="form-control flup" tabindex="2">
+                                                <input type="hidden" id="hfdFcpsExemption" value="" class="" />
+                                                <img id="imgFcpsExemption" class="flup-img" src="" alt="" style="display:none;" />
+                                                <a id="rmvFcpsExemption" class="removeImage" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>*@
+
+                            @*Certificates Start*@
                             <fieldset id="fieldType1" class="fieldType" style="display:none">
                                 <legend> <label> @*<input id="chkType1" type="checkbox" class="chkType" />*@ @*Part -1*@ FCPS @*Marks*@: </label></legend>
                                 <input type="hidden" id="hfdTypeId1" class="hfdTypeId" value="" />
@@ -1829,7 +1820,57 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            
+                            @*<fieldset id="fieldType0" class="fieldType" style="display:none">
+                                    <legend> <label> <input id="chkType0" type="checkbox" class="chkType" /> Part -1 FCPS Marks (2nd Optional): </label></legend>
+                                    <input type="hidden" id="hfdTypeId0" class="hfdTypeId" value="" />
+                                    <div class="row col-md-12 " style="display:none;">
+                                        <div class="col-xs-12 col-sm-4 col-md-4">
+                                            <div class="form-group">
+                                                <label> Obtained Marks * </label>
+                                                <input type="text" name="txtObtainMarksType0" id="txtObtainMarksType0" class="form-control txtObtainMarksType" required="">
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-4 col-md-4">
+                                            <div class="form-group">
+                                                <label> Total Marks *</label>
+                                                <input type="text" name="txtTotalMarksType0" id="txtTotalMarksType0" class="form-control" required="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row col-md-12 fieldType0" style="display:none;">
+                                        <div class="col-xs-12 col-sm-4 col-md-4">
+                                            <div class="form-group">
+                                                <label>Discipline</label>
+                                                @{
+                                                    var listDisciplineFCP = Model.listDiscipline.Where(x => x.typeId == 1).OrderBy(x => x.name).ToList();
+                                                    <select id="ddlDisciplineId0" class="form-control ddlDisciplineId">
+                                                        <option value="0" selected="selected">Select One</option>
+                                                        @foreach (var item in listDisciplineFCP)
+                                                        {
+                                                            <option value="@item.disciplineId">@item.name</option>
+                                                        }
+                                                    </select>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-4 col-md-4">
+                                            <div class="form-group">
+                                                <label>Passing Date <span class="sprq">*</span> <span id="spnPassingDateType0" class="lbl-err" style="display:none;">Invalid date</span></label>
+                                                <input required="required" type="text" name="txtPassingDateType0" id="txtPassingDateType0" class="form-control datepicker txtPassingDateType">
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-4 col-md-4">
+                                            <div class="form-group">
+                                                <label> Certificate Image <span class="sprq">*</span></label>
+                                                <input type="file" id="flType0" class="form-control flup flType" tabindex="2">
+                                                <input type="hidden" id="hfdType0" value="" class="hfdType" />
+                                                <img id="imgType0" class="flup-img imgType" src="" alt="" style="display:none;" />
+                                                <a id="rmvType0" class="removeImage rmvType" style="display:none;"> <i class="fa fa-window-close"></i> Remove</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>*@
+
 
                             <fieldset id="fieldType2" class="fieldType" style="display:none">
                                 <legend> <label> @*<input id="chkType2" type="checkbox" class="chkType" />*@ MS : </label></legend>
@@ -2012,8 +2053,9 @@
 
                                             <select id="ddlGoldMedal6" class="form-control ddlGoldMedal">
 
-                                                <option value="1" selected="selected">Yes</option>
-                                                <option value="2" >No</option>
+                                                <option value="1" selected="selected">1st</option>
+                                                <option value="2" selected="selected">2nd</option>
+                                                <option value="0" selected="selected">None</option>
                                             </select>
 
                                         </div>
