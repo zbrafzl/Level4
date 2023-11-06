@@ -503,11 +503,12 @@
                                                                     <th style="text-align:center">Year</th>
                                                                     <th style="text-align:center">Obtained Marks</th>
                                                                     <th style="text-align:center">Total Marks</th>
-                                                                    <th style="text-align:center">Division</th>
+                                                                    <th style="text-align:center">Percentage</th>
                                                                     <th style="text-align:center">Position</th>
                                                                     <th style="text-align:center">Attempts</th>
                                                                     <th style="text-align:center">Certificates</th>
                                                                     <th style="text-align:center">Position Certificates</th>
+                                                                    <th style="text-align:center">Points</th>
                                                                 </tr>
                                                                 @foreach (var marks in listDegreeMark)
                                                                 {
@@ -515,7 +516,7 @@
                                                                 <td style="text-align:center">@marks.year</td>
                                                                 <td style="text-align:center">@marks.obtainMarks</td>
                                                                 <td style="text-align:center">@marks.totalMarks</td>
-                                                                <td style="text-align:center">@marks.division</td>
+                                                                <td style="text-align:center">@Decimal.Round((Convert.ToDecimal(marks.obtainMarks)/(marks.totalMarks)*100),6)</td>
                                                                 <td style="text-align:center">@marks.position</td>
                                                                 <td style="text-align:center">@marks.attempt</td>
                                                                 <td style="text-align:center">

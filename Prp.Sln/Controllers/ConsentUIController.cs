@@ -18,7 +18,7 @@ namespace Prp.Sln.Controllers
             ConsentModel model = new ConsentModel();
 
 
-            int roundId = 1;// WebConfigurationManager.AppSettings["ConsentRound"].TooInt();
+            int roundId = 3;// WebConfigurationManager.AppSettings["ConsentRound"].TooInt();
             model.roundId = roundId;
 
             model.applicant = new ApplicantDAL().GetApplicant(ProjConstant.inductionId, loggedInUser.applicantId);

@@ -56,10 +56,10 @@
 
         $(document).ready(function () {
 
-            //$(document).on('click', '.sts_account', function () {
-            //    var id = ConvertToInt($(this).attr("id"));
-            //    window.location = "/admin/applicant-search?statusTypeId=52&statusId=" + id;
-            //});
+            $(document).on('click', '.sts_account', function () {
+                var id = ConvertToInt($(this).attr("id"));
+                window.location = "/admin/applicant-search?statusTypeId=131&statusId=" + id;
+            });
 
             //$(document).on('click', '.sts_application', function () {
             //    var id = ConvertToInt($(this).attr("id"));
@@ -157,19 +157,19 @@
                                                     </td>
                                                     <td>@verifyToal</td>
                                                 </tr>
-                                                <tr class="sts_account" id="2">
+                                                <tr class="sts_account" id="0">
                                                     <td>
                                                         <p><i class="fa fa-square aero"></i>Pending </p>
                                                     </td>
                                                     <td>@verifyPending</td>
                                                 </tr>
-                                                <tr class="sts_account" id="0">
+                                                <tr class="sts_account" id="1">
                                                     <td>
                                                         <p><i class="fa fa-square green"></i>Approved </p>
                                                     </td>
                                                     <td>@verifyApproved</td>
                                                 </tr>
-                                                <tr class="sts_account" id="0">
+                                                <tr class="sts_account" id="2">
                                                     <td>
                                                         <p><i class="fa fa-square  red"></i>Rejected </p>
                                                     </td>

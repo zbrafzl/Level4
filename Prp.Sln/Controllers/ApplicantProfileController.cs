@@ -429,7 +429,7 @@ namespace Prp.Sln.Controllers
                 model.listDistinction = new ApplicantDAL().GetApplicantDistinctionList(0, 0, loggedInUser.applicantId);
                 model.listResearchPaper = new ApplicantDAL().GetApplicantResearchPaperListDetail(0, 0, loggedInUser.applicantId);
                 model.listSpecility = new ApplicantDAL().GetApplicantSpecilityListWithMarks(0, 0, loggedInUser.applicantId);
-                model.voucher = new ApplicantDAL().GetApplicantVoucher(13, 0, loggedInUser.applicantId);
+                model.voucher = new ApplicantDAL().GetApplicantVoucher(14, 0, loggedInUser.applicantId);
                 model.listMarks = new MarksDAL().GetMarksAccumulativeByApplicant(loggedInUser.applicantId);
 
             }

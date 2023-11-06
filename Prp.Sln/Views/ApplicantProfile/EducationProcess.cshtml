@@ -20,7 +20,8 @@
         var applicantId = 0, applicantDetailId = 0, objApplicant = {}, objAppInfo = {}, objEducation = {},
             imagesPath = "", provinceId = 0, instituteTypeId = 0, graduateTypeId = 0, graduateType = 0
             , degreeTypeId, noOfYears = 0, diciplineId = 0
-            , applicantDegreeDetailId = 0, specialityIdFCPS = 0, specialityIdMSMD = 0
+            , applicantDegreeDetailId = 0, specialityIdFCPS = 0, specialityIdMSMD = 0,
+            percentage1 = 0, percentage2 = 0, percentage3 = 0, percentage4 = 0, percentage5 = 0;
 
         var objDegree = {}, objEducation = {}, objDegreeMarksList = [], objCertificateList = []; objLevel3List = [];
 
@@ -69,6 +70,97 @@
 
             });
 
+            $(document).on('change', '#txtRowDegree1MarksTotal', function () {
+                if (ConvertToInt($(this).val()) != 0) {
+                    percentage1 = ConvertToInt($("#txtRowDegree1MarksObtain").val()) / ConvertToInt($(this).val()) * 100;
+                    $("#txtPercentage1").val(percentage1)
+                }
+
+                
+
+            });
+
+            $(document).on('change', '#txtRowDegree1MarksObtain', function () {
+                if (ConvertToInt($("#txtRowDegree1MarksTotal").val()) != 0) {
+                    percentage1 = ConvertToInt($(this).val()) / ConvertToInt($("#txtRowDegree1MarksTotal").val()) * 100;
+                    $("#txtPercentage1").val(percentage1)
+                }
+                
+
+            });
+            $(document).on('change', '#txtRowDegree2MarksTotal', function () {
+                if (ConvertToInt($(this).val()) != 0) {
+                    percentage2 = ConvertToInt($("#txtRowDegree2MarksObtain").val()) / ConvertToInt($(this).val()) * 100;
+                    $("#txtPercentage2").val(percentage2)
+                }
+
+
+
+            });
+
+            $(document).on('change', '#txtRowDegree2MarksObtain', function () {
+                if (ConvertToInt($("#txtRowDegree2MarksTotal").val()) != 0) {
+                    percentage2 = ConvertToInt($(this).val()) / ConvertToInt($("#txtRowDegree2MarksTotal").val()) * 100;
+                    $("#txtPercentage2").val(percentage2)
+                }
+
+
+            });
+            $(document).on('change', '#txtRowDegree3MarksTotal', function () {
+                if (ConvertToInt($(this).val()) != 0) {
+                    percentage3 = ConvertToInt($("#txtRowDegree3MarksObtain").val()) / ConvertToInt($(this).val()) * 100;
+                    $("#txtPercentage3").val(percentage3)
+                }
+
+
+
+            });
+
+            $(document).on('change', '#txtRowDegree3MarksObtain', function () {
+                if (ConvertToInt($("#txtRowDegree3MarksTotal").val()) != 0) {
+                    percentage3 = ConvertToInt($(this).val()) / ConvertToInt($("#txtRowDegree3MarksTotal").val()) * 100;
+                    $("#txtPercentage3").val(percentage3)
+                }
+
+
+            });
+            $(document).on('change', '#txtRowDegree4MarksTotal', function () {
+                if (ConvertToInt($(this).val()) != 0) {
+                    percentage4 = ConvertToInt($("#txtRowDegree4MarksObtain").val()) / ConvertToInt($(this).val()) * 100;
+                    $("#txtPercentage4").val(percentage4)
+                }
+
+
+
+            });
+
+            $(document).on('change', '#txtRowDegree4MarksObtain', function () {
+                if (ConvertToInt($("#txtRowDegree4MarksTotal").val()) != 0) {
+                    percentage4 = ConvertToInt($(this).val()) / ConvertToInt($("#txtRowDegree4MarksTotal").val()) * 100;
+                    $("#txtPercentage4").val(percentage4)
+                }
+
+
+            });
+
+            $(document).on('change', '#txtRowDegree5MarksTotal', function () {
+                if (ConvertToInt($(this).val()) != 0) {
+                    percentage5 = ConvertToInt($("#txtRowDegree5MarksObtain").val()) / ConvertToInt($(this).val()) * 100;
+                    $("#txtPercentage5").val(percentage5)
+                }
+
+
+
+            });
+
+            $(document).on('change', '#txtRowDegree5MarksObtain', function () {
+                if (ConvertToInt($("#txtRowDegree5MarksTotal").val()) != 0) {
+                    percentage5 = ConvertToInt($(this).val()) / ConvertToInt($("#txtRowDegree5MarksTotal").val()) * 100;
+                    $("#txtPercentage5").val(percentage5)
+                }
+
+
+            });
             $(document).on('change', '#ddlDisciplineId1', function () {
 
                 diciplineId = ConvertToInt($(this).val());
@@ -1004,7 +1096,7 @@
 
                     for (var i = 1; i <= noOfYears; i++) {
                         var objDegreeMarks = objDegreeMarksList[i - 1];
-
+                        $("#txtPercentage" + i).val(objDegreeMarks.obtainMarks / objDegreeMarks.totalMarks * 100);
                         $("#hfdRowDegree" + i + "Id").val(objDegreeMarks.degreeMarksId);
                         $("#txtRowDegree" + i + "MarksObtain").val(objDegreeMarks.obtainMarks);
                         $("#txtRowDegree" + i + "MarksTotal").val(objDegreeMarks.totalMarks);
@@ -1366,7 +1458,7 @@
                                                 <th>Year </th>
                                                 <th>Obtained Marks <span class="sprq">*</span></th>
                                                 <th>Total Marks <span class="sprq">*</span></th>
-                                                <th>Division <span class="sprq">*</span></th>
+                                                <th>Percentage <span class="sprq">*</span></th>
                                                 <th>Attempt <span class="sprq">*</span></th>
                                                 <th>Position <span class="sprq">*</span></th>
                                                 <th>DMC Image <span class="sprq">*</span></th>
@@ -1379,11 +1471,7 @@
                                                 <td> <input class="form-control numeric" type="text" id="txtRowDegree1MarksObtain" len="4"> </td>
                                                 <td> <input type="text" class="form-control numeric" id="txtRowDegree1MarksTotal" len="4"> </td>
                                                 <td>
-                                                    <select class="form-control" id="ddlRowDegree1Division">
-                                                        <option value="1"> 1st</option>
-                                                        <option value="2"> 2nd </option>
-                                                        <option value="3"> 3rd </option>
-                                                    </select>
+                                                    <input type="text" class="form-control numeric" id="txtPercentage1" len="4" readonly>
                                                 </td>
                                                 <td>
                                                     <select class="form-control" id="ddlRowDegree1Attempt">
@@ -1416,11 +1504,7 @@
                                                 <td> <input class="form-control numeric" type="text" id="txtRowDegree2MarksObtain" len="4"> </td>
                                                 <td> <input type="text" class="form-control numeric" id="txtRowDegree2MarksTotal" len="4"> </td>
                                                 <td>
-                                                    <select class="form-control" id="ddlRowDegree2Division">
-                                                        <option value="1"> 1st</option>
-                                                        <option value="2"> 2nd </option>
-                                                        <option value="3"> 3rd </option>
-                                                    </select>
+                                                    <input type="text" class="form-control numeric" id="txtPercentage2" len="4" readonly>
                                                 </td>
                                                 <td>
                                                     <select class="form-control" id="ddlRowDegree2Attempt">
@@ -1453,11 +1537,7 @@
                                                 <td> <input class="form-control numeric" type="text" id="txtRowDegree3MarksObtain" len="4"> </td>
                                                 <td> <input type="text" class="form-control numeric" id="txtRowDegree3MarksTotal" len="4"> </td>
                                                 <td>
-                                                    <select class="form-control" id="ddlRowDegree3Division">
-                                                        <option value="1"> 1st</option>
-                                                        <option value="2"> 2nd </option>
-                                                        <option value="3"> 3rd </option>
-                                                    </select>
+                                                    <input type="text" class="form-control numeric" id="txtPercentage3" len="4" readonly>
                                                 </td>
                                                 <td>
                                                     <select class="form-control" id="ddlRowDegree3Attempt">
@@ -1490,11 +1570,7 @@
                                                 <td> <input class="form-control numeric" type="text" id="txtRowDegree4MarksObtain" len="4"> </td>
                                                 <td> <input type="text" class="form-control numeric" id="txtRowDegree4MarksTotal" len="4"> </td>
                                                 <td>
-                                                    <select class="form-control" id="ddlRowDegree4Division">
-                                                        <option value="1"> 1st</option>
-                                                        <option value="2"> 2nd </option>
-                                                        <option value="3"> 3rd </option>
-                                                    </select>
+                                                    <input type="text" class="form-control numeric" id="txtPercentage4" len="4" readonly>
                                                 </td>
                                                 <td>
                                                     <select class="form-control" id="ddlRowDegree4Attempt">
@@ -1527,11 +1603,7 @@
                                                 <td> <input class="form-control numeric" type="text" id="txtRowDegree5MarksObtain" len="4"> </td>
                                                 <td> <input type="text" class="form-control numeric" id="txtRowDegree5MarksTotal" len="4"> </td>
                                                 <td>
-                                                    <select class="form-control" id="ddlRowDegree5Division">
-                                                        <option value="1"> 1st</option>
-                                                        <option value="2"> 2nd </option>
-                                                        <option value="3"> 3rd </option>
-                                                    </select>
+                                                    <input type="text" class="form-control numeric" id="txtPercentage5" len="4" readonly>
                                                 </td>
                                                 <td>
                                                     <select class="form-control" id="ddlRowDegree5Attempt">
@@ -2053,9 +2125,8 @@
 
                                             <select id="ddlGoldMedal6" class="form-control ddlGoldMedal">
 
-                                                <option value="1" selected="selected">1st</option>
-                                                <option value="2" selected="selected">2nd</option>
-                                                <option value="0" selected="selected">None</option>
+                                                <option value="1" selected="selected">Yes</option>
+                                                <option value="0" selected="selected">No</option>
                                             </select>
 
                                         </div>

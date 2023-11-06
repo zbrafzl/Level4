@@ -606,7 +606,7 @@
                                         <th style="font-weight:bold; text-align:center">Obtained Marks</th>
                                         <th style="font-weight:bold; text-align:center">Total Marks</th>
                                         <th style="font-weight:bold; text-align:center">Attempts</th>
-                                        <th style="font-weight:bold; text-align:center">Division</th>
+                                        <th style="font-weight:bold; text-align:center">Percentage</th>
                                         <th style="font-weight:bold; text-align:center">Position</th>
                                         <th style="font-weight:bold; text-align:center">Certificates</th>
                                     </tr>
@@ -617,7 +617,7 @@
                             <td>@marks.obtainMarks</td>
                             <td>@marks.totalMarks</td>
                             <td>@marks.attempt</td>
-                            <td>@marks.division</td>
+                            <td style="text-align:center">@Decimal.Round((Convert.ToDecimal(marks.obtainMarks) / (marks.totalMarks) * 100), 6)</td>
                             <td>@marks.position</td>
                             <td>
                                 <a class="ank" href="@("/images/Applicant/" + applicant.applicantId + "/" + marks.imageDMC)" target="_blank" title="Click to view">

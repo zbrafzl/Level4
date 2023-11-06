@@ -40,6 +40,10 @@
 
                         url = "/admin/voucher-detail?applicantId=" + applicantId;
                     }
+                    else if (statusTypeId == 131 && @Model.loggedInUser.typeId == 30) {
+
+                        url = "/admin/applicant/verify-ke?key=applicantId&value=" + applicantId;
+                    }
                     else {
 
                         url = "/admin/applicant-detail-induction-" + inductionId + "?key=applicantId&value=" + applicantId;

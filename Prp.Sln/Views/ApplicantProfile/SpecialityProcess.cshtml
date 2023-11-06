@@ -22,7 +22,7 @@
     <script>
 
         var applicantId = 0, objApplicant = {}, applicantSpecilityId = 0, totalSpecialties = 0
-            , objSpecility = {}, objSpecilityList = [], objTypeList = [];
+            , objSpecility = {}, objSpecilityList = [], objTypeList = [], selectedSpecialtiesList = [];
 
         var typeId = 0, specialityId = 0, superSpecialityId =0, hospitalId = 0, listHospitalByTypeAndSepecility = [];
 
@@ -321,14 +321,14 @@
                 objSpecilityList = resp;
                 BindPenelSpecilityList();
                 //alert(objSpecilityList.length);
+                debugger;
                 totalSpecialties = objSpecilityList.length;
             }
         }
 
         function BindPenelSpecilityList() {
-
+            
             $("#divHtml").html("");
-
             var divTemp = $("#divTemp").html();
             var htmlTemp = $("#tbTemplate").html();
 
@@ -337,11 +337,12 @@
             var htmlCompleteDiv = "", htmlSingleDiv = "";
 
             if (objSpecilityList != null && objSpecilityList.length > 0) {
-
+                selectedSpecialtiesList = [];
                 var objType = {};
                 for (var i = 0; i < objTypeList.length; i++) {
-
                     objType = objTypeList[i];
+                    //if (selectedSpecialtiesList.include(objType.))
+
 
                     var objTypeSpecilityList = $.grep(objSpecilityList, function (n, i) {
                         return n.typeId == objType.id;
@@ -351,18 +352,21 @@
 
                         htmlComplete = "";
                         htmlSingleDiv = divTemp;
-
+                        selectedSpecialtiesList = [];
                         for (var j = 0; j < objTypeSpecilityList.length; j++) {
-
+                            
                             htmlSingle = htmlTemp;
                             objItem = objTypeSpecilityList[j];
+                            if (selectedSpecialtiesList.includes(objItem.superSpecialityId)) {
+                                selectedSpecialtiesList.push(objItem.superSpecialityId);
+                            }
                             htmlComplete = htmlComplete + htmlSingle.replace(/{#specialityName#}/g, objItem.specialityName)
                                 .replace(/{#superSpecialityName#}/g, objItem.superSpecialityName)
                                 .replace(/{#hospitalName#}/g, objItem.hospitalName)
                                 .replace(/{#preferenceNo#}/g, objItem.preferenceNo)
                                 .replace(/{#SpecilityId#}/g, objItem.applicantSpecilityId);
                         }
-
+                        console.log(selectedSpecialtiesList);
                         var body = " <table class='table mt10'><thead class='job-th'>" +
                             "<tr><th>Super Speciality</th><th>Speciality</th>" +
                             "<th>Hospital</th><th>Preference No</th> <th>Action</th></tr> </thead> " +

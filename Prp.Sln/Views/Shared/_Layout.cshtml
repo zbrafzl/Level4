@@ -89,7 +89,7 @@
 </head>
 <body cz-shortcut-listen="true">
     <div id="divBgImage" class="bg-img bg-container">
-        <header>
+        <header style="position:initial !important;">
             <div class="container">
                 <div class="col-sm-3 logo"> <a href="/"><img src="/assets/logo.png" alt="PHF" ></a> </div>
                 <div class="col-sm-9 navigation">
@@ -121,13 +121,13 @@
                                             @* <li class="blink">
                                                     <a href="/applicant/joining">Joining</a>
                                                 </li>*@
-                                            <li>
+                                            @*<li>
                                                 <a href="/profile-view-print">View Profile</a>
                                                 <input type="hidden" id="hfdApplicantId" value="@(Model.loggedInUser.applicantId)" />
-                                            </li>
-                                            @*<li class="blink">
-                                                <a href="@("/"+ProjConstant.preUrl + "/applicant/consent")">Give Consent</a>
                                             </li>*@
+                                            <li class="blink">
+                                                <a href="@("/"+ProjConstant.preUrl + "/applicant/consent")">Give Consent</a>
+                                            </li>
                                         }
                                         else
                                         {

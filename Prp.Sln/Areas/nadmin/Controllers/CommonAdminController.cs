@@ -295,7 +295,7 @@ namespace Prp.Sln.Areas.nadmin.Controllers
                 if (String.IsNullOrWhiteSpace(smsBody))
                 {
                     smsId = 0;
-                    smsBody = "Dear Applicant, Your current password  for PRP Induction January (2021) against emailId(" + applicant.emailId + ") is : " + applicant.passwordDecrypt + "";
+                    smsBody = "Dear Applicant, Your current password  for Level4 Induction July (2023) against emailId(" + applicant.emailId + ") is : " + applicant.passwordDecrypt + "";
                 }
                 msg = FunctionUI.SendSms(applicant.contactNumber, smsBody);
 
